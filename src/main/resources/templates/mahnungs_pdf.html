@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mahnung</title>
+</head>
+<body>
+<p>Hallo lieber Kunde,<br/>
+dieses Dokument ist deine Mahnungssbestätigung für die Rechnung <span th:text="${bill}"></span> <br/>
+Betrag(5% von Rechnung): <span th:text="${amount}"></span> €.
+</p>
+</body>
+</html>

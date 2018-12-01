@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Zahlungsbestätigung</title>
+</head>
+<body>
+<p>Hallo lieber Kunde,<br/>
+dieses Dokument ist deine Zahlungssbestätigung für die Reservierungen <span th:text="${reservations}"></span> <br/>
+Betrag: <span th:text="${amount}"></span> €.
+</p>
+</body>
+</html>
