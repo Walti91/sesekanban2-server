@@ -6,9 +6,12 @@
     <title>Mahnung</title>
 </head>
 <body>
-<p>Hallo lieber Kunde,<br/>
-dieses Dokument ist deine Mahnungssbestätigung für die Rechnung <span th:text="${bill}"></span> <br/>
-Betrag(5% von Rechnung): <span th:text="${amount}"></span> €.
+<p>Sehr geehrter Herr <span th:text="${name}"></span>,<br/>
+hiermit erhalten Sie eine Mahnung für die Rechnung mit der Rechnungsnummer <span th:text="${bill}"></span>. <br/>
+Bitte überweisen Sie uns schnellstmöglich den folgenden Betrag: <span th:text="${amount}"></span>€.
+    <br/><br/>
+    Vielen Dank, <br/>
+    Ihr Hotel
 </p>
 </body>
 </html>

@@ -46,8 +46,9 @@ public class DataLoader implements ApplicationRunner {
         Thread t = new Thread(new ReminderService(billRepository,reminderRepository,mailService));
         t.start();
 
-        Thread t2 = new Thread(new OverdueService(billRepository,mailService));
-        t2.start();
+        // In the first step not needed. The "Angebot" just mentions that a employee should be able to send those mails.
+        /* Thread t2 = new Thread(new OverdueService(billRepository,mailService));
+        t2.start();*/
     }
 
     private void loadRooms() {

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sese.requests.BillRequest;
 import sese.responses.BillResponse;
+import sese.responses.ReminderResponse;
 import sese.services.BillService;
 
 import java.util.List;
@@ -42,5 +43,10 @@ public class BillController {
     @GetMapping("/suche")
     public List<BillResponse> getBillWithoutKeyword() {
         return billService.getAll();
+    }
+
+    @PostMapping("/{id}/mahnung")
+    public ReminderResponse sendRemainder(@PathVariable Long id) {
+        return billService.sendReminder(id);
     }
 }

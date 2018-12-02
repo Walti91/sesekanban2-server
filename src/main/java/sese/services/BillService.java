@@ -2,6 +2,7 @@ package sese.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sese.entities.Bill;
 import sese.entities.Payment;
 import sese.entities.Reminder;
@@ -13,12 +14,13 @@ import sese.repositories.ReminderRepository;
 import sese.repositories.ReservationRepository;
 import sese.requests.BillRequest;
 import sese.responses.BillResponse;
+import sese.responses.ReminderResponse;
 import sese.services.utils.BillCostCalculaterUtil;
+import sese.services.utils.PdfGenerationUtil;
+import sese.services.utils.TemplateUtil;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +31,9 @@ public class BillService {
     private ReservationRepository reservationRepository;
 
     private ReminderRepository reminderRepository;
+
+    @Autowired
+    private MailService mailService;
 
 
     @Autowired
@@ -49,6 +54,43 @@ public class BillService {
         Bill bill = getBillObjectById(id);
         bill.addReminder(reminder);
         return new BillResponse(bill);
+    }
+
+    @Transactional
+    public ReminderResponse sendReminder(Long id) {
+
+        Bill bill = getBillObjectById(id);
+
+        Reminder reminder = new Reminder();
+        reminder.setBill(bill);
+        reminder.setTimestamp(OffsetDateTime.now());
+
+        bill.addReminder(reminder);
+
+        Map<String, Object> variablesMail = new HashMap<>();
+        variablesMail.put("name", bill.getReservations().get(0).getCustomer().getName());
+
+        String htmlText = TemplateUtil.processTemplate("mahnungs_mail", variablesMail);
+
+        Map<String, Object> variablesPdf = new HashMap<>();
+        variablesPdf.put("name", bill.getReservations().get(0).getCustomer().getName());
+        variablesPdf.put("bill", bill.getId());
+        // bill amount minus all payment amounts for that bill
+        variablesPdf.put("amount", bill.getAmount() - bill.getPayments().stream().map(p -> p.getValue()).mapToDouble(Double::doubleValue).sum());
+
+        byte[] pdfAttachment = PdfGenerationUtil.createPdf("mahnungs_pdf", variablesPdf);
+
+        try {
+            mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Mahnung", htmlText, "mahnung.pdf", pdfAttachment, "application/pdf");
+            reminder.setEmailSent(true);
+        } catch (Exception e) {
+            reminder.setEmailSent(false);
+        }
+
+        Reminder saved = reminderRepository.save(reminder);
+        billRepository.save(bill);
+
+        return new ReminderResponse(saved);
     }
 
     public BillResponse addNewBill(BillRequest billRequest) {
