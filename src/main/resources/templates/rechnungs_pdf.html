@@ -1,0 +1,22 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-3.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Rechnung</title>
+</head>
+<body>
+<p>Nachfolgend Ihre Rechnung:<br/>
+Rechnungsnummer: <span th:text="${rechnungsnummer}"></span><br/>
+    Name: <span th:text="${name}"></span><br/>
+    Rechnungsbetrag: <span th:text="${betrag}"></span><br />
+    <br/><br/>
+    Bitte überweisen Sie den oben angeführten Rechnungsbetrag an folgende Bankverbindung:<br/>
+    <br/>
+    IBAN: AT 1234 5678 9012 3456<br/>
+    Zahlungsreferenz: <span th:text="${rechnungsnummer}"></span><br/>
+    <br/>
+    Beehren Sie uns jederzeit wieder!
+</p>
+</body>
+</html>

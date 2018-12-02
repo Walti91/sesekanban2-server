@@ -100,8 +100,10 @@ public class ReservationService {
     private void sendReservationMail(Reservation reservation) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", reservation.getCustomer().getName());
+        variables.put("startDate", reservation.getStartDate().toLocalDate());
+        variables.put("endDate", reservation.getEndDate().toLocalDate());
         String htmlText = TemplateUtil.processTemplate("reservierungs_mail", variables);
-        byte[] pdfAttachment = PdfGenerationUtil.createPdf("reservierungs_pdf", null);
+        byte[] pdfAttachment = PdfGenerationUtil.createPdf("reservierungs_pdf", variables);
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Reservierung ist abgeschlossen", htmlText , "bestaetigung.pdf", pdfAttachment, "application/pdf");
     }
 

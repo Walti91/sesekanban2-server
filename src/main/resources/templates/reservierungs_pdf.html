@@ -1,11 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-3.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <title>Reservierungsbestätigung</title>
 </head>
 <body>
-<p>Hallo lieber Kunde,<br/>
-dieses Dokument ist deine Reservierungsbestätigung</p>
+Nachfolgend Ihre Reservierungsdaten:
+<p>Name: <span th:text="${name}"></span><br/>
+    Startdatum: <span th:text="${startDate}"></span><br/>
+    Endatum: <span th:text="${endDate}"></span><br/>
+</p>
 </body>
 </html>

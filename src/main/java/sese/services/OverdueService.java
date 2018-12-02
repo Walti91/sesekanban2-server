@@ -1,7 +1,7 @@
 package sese.services;
 
-import org.hibernate.Hibernate;
-import org.hibernate.Session;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import sese.entities.Bill;
 import sese.entities.Payment;
@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OverdueService implements Runnable {//mahnung
+@Component
+public class OverdueService {
 
     private BillRepository billRepository;
     private MailService mailService;
@@ -25,46 +26,30 @@ public class OverdueService implements Runnable {//mahnung
         this.mailService = mailService;
     }
 
-
     //check everyday if anyone missed their deadlines and send overdue notice
-    @Transactional(readOnly=true)
+    @Scheduled(fixedRate = 86400000)
+    @Transactional(readOnly = true)
     public void run() {
-
         List<Bill> bills = billRepository.findAll();
+        for (Bill bill : bills) {
 
-        while (true) {
+            List<Payment> payments = bill.getPayments();
 
-            for (Bill bill : bills) {
+            if (payments == null || payments.isEmpty()) {
 
-                List<Payment> payments= bill.getPayments();
-
-                if (payments == null || payments.isEmpty()) {
-
-                    OffsetDateTime latestDate = OffsetDateTime.now();
-                    for (Reservation reservation : bill.getReservations()) {
-                        OffsetDateTime resDate = reservation.getEndDate();
-                        if (resDate.isAfter(latestDate)) {
-                            latestDate = resDate;
-                        }
-                    }
-
-                    if (OffsetDateTime.now().isAfter(latestDate.plusWeeks(2))) {
-                        sendOverdueMail(bill);
+                OffsetDateTime latestDate = OffsetDateTime.now();
+                for (Reservation reservation : bill.getReservations()) {
+                    OffsetDateTime resDate = reservation.getEndDate();
+                    if (resDate.isAfter(latestDate)) {
+                        latestDate = resDate;
                     }
                 }
 
-
-            }
-
-
-            try {
-//                Thread.sleep(86400000);//1 day
-                Thread.sleep(10000);//10 secs(for testing)
-            } catch (InterruptedException e) {
-                //shouldnt happen
+                if (OffsetDateTime.now().isAfter(latestDate.plusWeeks(2))) {
+                    sendOverdueMail(bill);
+                }
             }
         }
-
     }
 
     private void sendOverdueMail(Bill bill) {

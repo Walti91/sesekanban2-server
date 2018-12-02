@@ -1,6 +1,8 @@
 package sese.services;
 
 import org.hibernate.Hibernate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import sese.entities.Bill;
 import sese.entities.Payment;
@@ -15,8 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ReminderService implements Runnable {
-
+@Component
+public class ReminderService {
 
     private BillRepository billRepository;
     private ReminderRepository reminderRepository;
@@ -28,56 +30,41 @@ public class ReminderService implements Runnable {
         this.mailService = mailService;
     }
 
-
     //Check every week if there are any reminders to be sent. And send them
-    @Transactional(readOnly=true)
-    public void run() {
-
+    @Scheduled(fixedRate = 86400000)
+    @Transactional(readOnly = true)
+    public void remind() {
         List<Bill> bills = billRepository.findAll();
 
-        while (true) {
-            for (Bill bill : bills) {
+        for (Bill bill : bills) {
 
-                Hibernate.initialize(bill.getPayments());
+            List<Payment> payments = bill.getPayments();
 
-                List<Payment> payments= bill.getPayments();
+            if (payments == null || payments.isEmpty()) {//no payment yet
 
-                if (payments == null || payments.isEmpty()) {//no payment yet
-
-                    List<Reminder> reminders = bill.getReminders();
-                    if (reminders == null || reminders.isEmpty()) {//no reminders, add one
-                        addReminderNow(bill);
-                    }
-
-                    boolean allRemindersSentNoPayment = true;
-
-                    //reminders are created during bill creation. There is usually one reminder.
-                    for (Reminder reminder : bill.getReminders()) {
-                        if (!reminder.isEmailSent() && reminder.getTimestamp().isBefore(OffsetDateTime.now())) {
-                            allRemindersSentNoPayment = false;
-                            sendReminderMail(reminder);
-                        }
-                    }
-
-                    if (allRemindersSentNoPayment) {//the customer still hasn't paid after reminders, send another one
-                        Reminder reminder = addReminderNow(bill);
-                        sendReminderMail(reminder);
-                    }
-
+                /*List<Reminder> reminders = bill.getReminders();
+                if (reminders == null || reminders.isEmpty()) {//no reminders, add one
+                    addReminderNow(bill);
                 }
 
+                boolean allRemindersSentNoPayment = true;*/
 
-            }
+                //reminders are created during bill creation. There is usually one reminder.
+                for (Reminder reminder : bill.getReminders()) {
+                    if (!reminder.isEmailSent() && reminder.getTimestamp().isBefore(OffsetDateTime.now())) {
+                        //allRemindersSentNoPayment = false;
+                        reminder.setEmailSent(true);
+                        sendReminderMail(reminder);
+                    }
+                }
 
+                /*if (allRemindersSentNoPayment) {//the customer still hasn't paid after reminders, send another one
+                    Reminder reminder = addReminderNow(bill);
+                    sendReminderMail(reminder);
+                }*/
 
-            try {
-                Thread.sleep(604800000);//1 week
-//                Thread.sleep(10000);//10 secs(for testing)
-            } catch (InterruptedException e) {
-                //shouldnt happen
             }
         }
-
     }
 
     private void sendReminderMail(Reminder reminder) {

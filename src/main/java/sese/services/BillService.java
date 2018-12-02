@@ -3,10 +3,7 @@ package sese.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sese.entities.Bill;
-import sese.entities.Payment;
-import sese.entities.Reminder;
-import sese.entities.Reservation;
+import sese.entities.*;
 import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
@@ -161,9 +158,25 @@ public class BillService {
             reservationRepository.save(reservation);
         });
 
-        return new BillResponse(bill);
+        sendBillMail(bill);
 
+        return new BillResponse(bill);
     }
+
+    private void sendBillMail(Bill bill) {
+        Reservation reservation = bill.getReservations().stream().findFirst().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
+        double betrag = bill.getReservations().stream()
+                .map(r -> r.getRoomReservations().stream().map(rr -> rr.getRoom().getPriceAdult() * rr.getAdults() + rr.getRoom().getPriceChild() * rr.getChildren()).reduce(0D, (a, b) -> a + b))
+                .reduce(0D, (a, b) -> a + b);
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", reservation.getCustomer().getName());
+        variables.put("rechnungsnummer", bill.getId());
+        variables.put("betrag", betrag);
+        String htmlText = TemplateUtil.processTemplate("rechnungs_mail", variables);
+        byte[] pdfAttachment = PdfGenerationUtil.createPdf("rechnungs_pdf", variables);
+        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Rechnung!", htmlText , "rechnung.pdf", pdfAttachment, "application/pdf");
+    }
+
 
     private Bill getBillObjectById(Long billId) {
         Optional<Bill> billOptional = billRepository.findById(billId);

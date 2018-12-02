@@ -42,13 +42,6 @@ public class DataLoader implements ApplicationRunner {
         loadReservations();
         //bills need to come after reservations cause it depends on it
         loadBills();
-
-        Thread t = new Thread(new ReminderService(billRepository,reminderRepository,mailService));
-        t.start();
-
-        // In the first step not needed. The "Angebot" just mentions that a employee should be able to send those mails.
-        /* Thread t2 = new Thread(new OverdueService(billRepository,mailService));
-        t2.start();*/
     }
 
     private void loadRooms() {
