@@ -1,9 +1,9 @@
 package sese.services;
 
-import org.hibernate.Hibernate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import sese.entities.Bill;
 import sese.entities.Payment;
 import sese.entities.Reminder;
@@ -40,7 +40,7 @@ public class ReminderService {
 
             List<Payment> payments = bill.getPayments();
 
-            if (payments == null || payments.isEmpty()) {//no payment yet
+            if (CollectionUtils.isEmpty(payments)) {
 
                 /*List<Reminder> reminders = bill.getReminders();
                 if (reminders == null || reminders.isEmpty()) {//no reminders, add one
