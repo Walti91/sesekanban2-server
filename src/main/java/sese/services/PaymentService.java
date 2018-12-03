@@ -10,6 +10,7 @@ import sese.entities.Reservation;
 import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
+import sese.repositories.PaymentRepository;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -22,6 +23,9 @@ public class PaymentService {
 
     @Autowired
     private BillRepository billRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Autowired
     private MailService mailService;
@@ -38,14 +42,15 @@ public class PaymentService {
         Payment payment = new Payment();
         payment.setTimestamp(OffsetDateTime.now());
         payment.setValue(bill.getAmount());
-        payment.setEmailSent(true);
 
         bill.addPayment(payment);
-
-        sendPaymentMail(bill,payment);
     }
 
-    private void sendPaymentMail(Bill bill, Payment payment) {
+    @Transactional
+    public void sendPaymentMail(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new SeseException(SeseError.PAYMENT_NOT_FOUND));
+        Bill bill = payment.getBill();
+
         Reservation reservation = bill.getReservations().stream().findAny().orElseThrow(() -> new SeseException(SeseError.NO_CUSTOMER));
         Customer customer = reservation.getCustomer();
         Map<String, Object> variables = new HashMap<>();
@@ -55,9 +60,11 @@ public class PaymentService {
 
         variables = new HashMap<>();
         System.out.println(bill.getReservations().toString());
-        variables.put("billid", bill.getReservations());
+        variables.put("billid", bill.getId());
         variables.put("amount", payment.getValue());
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", customer.getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "zahlungsbestaetigung.pdf", pdfAttachment, "application/pdf");
+
+        payment.setEmailSent(true);
     }
 }
