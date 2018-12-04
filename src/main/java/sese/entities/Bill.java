@@ -1,8 +1,7 @@
 package sese.entities;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.*;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +22,16 @@ public class Bill {
     @OneToMany(mappedBy = "bill")
     private List<Reminder> reminders = new ArrayList<>();
 
+    private boolean paid;
+
     private double amount;
+
+    private OffsetDateTime created;
+
+    public Bill() {
+        paid = false;
+        created = OffsetDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -83,6 +91,22 @@ public class Bill {
         this.amount = amount;
     }
 
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public void setPaid(boolean paid) {
+        this.paid = paid;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
     @Override
     public String toString() {
         return "Bill{" +
@@ -92,6 +116,8 @@ public class Bill {
                 ", payments=" + payments +
                 ", reminders=" + reminders +
                 ", amount=" + amount +
+                ", paid=" + paid +
+                ", created=" + created +
                 '}';
     }
 }
