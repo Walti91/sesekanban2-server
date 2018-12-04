@@ -3,7 +3,10 @@ package sese.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sese.entities.*;
+import sese.entities.Bill;
+import sese.entities.Payment;
+import sese.entities.Reminder;
+import sese.entities.Reservation;
 import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
@@ -126,24 +129,7 @@ public class BillService {
         bill.setCancelled(false);
         bill.setReservations(reservations);
 
-        Reminder reminder = new Reminder();
-        reminder.setBill(bill);
-
-        OffsetDateTime latestDate = OffsetDateTime.now();
-        for (Reservation reservation : reservations) {
-            OffsetDateTime resDate = reservation.getEndDate();
-            if (resDate.isAfter(latestDate)) {
-                latestDate = resDate;
-            }
-        }
-        reminder.setTimestamp(latestDate.plusWeeks(1));//reminder default is 1 week after reservation end (or now if that is later)
-        reminder.setEmailSent(false);
-
-        bill.addReminder(reminder);
-
         billRepository.save(bill);
-
-        reminderRepository.save(reminder);
 
         reservations.stream().forEach(reservation -> {
 
