@@ -11,6 +11,7 @@ import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
 import sese.repositories.PaymentRepository;
+import sese.responses.PaymentResponse;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -36,14 +37,17 @@ public class PaymentService {
      * @param billId
      */
     @Transactional
-    public void processPayment(Long billId){
+    public PaymentResponse processPayment(Long billId, double amount){
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new SeseException(SeseError.BILL_ID_NOT_FOUND));
 
         Payment payment = new Payment();
         payment.setTimestamp(OffsetDateTime.now());
-        payment.setValue(bill.getAmount());
+        payment.setValue(amount);
 
         bill.addPayment(payment);
+        paymentRepository.save(payment);
+
+        return new PaymentResponse(payment);
     }
 
     @Transactional
@@ -51,7 +55,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new SeseException(SeseError.PAYMENT_NOT_FOUND));
         Bill bill = payment.getBill();
 
-        Reservation reservation = bill.getReservations().stream().findAny().orElseThrow(() -> new SeseException(SeseError.NO_CUSTOMER));
+        Reservation reservation = bill.getReservations().stream().findAny().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
         Customer customer = reservation.getCustomer();
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", customer.getName());
