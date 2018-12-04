@@ -30,7 +30,7 @@ public class PaymentControllerCustomer {
     }
 
     @GetMapping("/zahlung/{paymentId}/mail")
-    public void sendPaymentMail(@PathVariable(name = "paymentId") Long paymentId) {
-        paymentService.sendPaymentMail(paymentId);
+    public PaymentResponse sendPaymentMail(@PathVariable(name = "paymentId") Long paymentId) {
+        return paymentService.sendPaymentMail(paymentId);
     }
 }

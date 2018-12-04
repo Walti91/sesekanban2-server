@@ -51,7 +51,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void sendPaymentMail(Long paymentId) {
+    public PaymentResponse sendPaymentMail(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new SeseException(SeseError.PAYMENT_NOT_FOUND));
         Bill bill = payment.getBill();
 
@@ -70,5 +70,7 @@ public class PaymentService {
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", customer.getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "zahlungsbestaetigung.pdf", pdfAttachment, "application/pdf");
 
         payment.setEmailSent(true);
+
+        return new PaymentResponse(payment);
     }
 }
