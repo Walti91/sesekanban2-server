@@ -133,26 +133,15 @@ public class DataLoader implements ApplicationRunner {
         Payment payment = new Payment();
         payment.setBill(bill);
         payment.setEmailSent(true);
-
         payment.setTimestamp(OffsetDateTime.now());
         payment.setValue(10.0);
+
         bill.setAmount(10.0);
-
         bill.addPayment(payment);
-
+        //bill.setCreated(OffsetDateTime.now().minusWeeks(1L));
         List<Reservation> reservations = reservationRepository.findAll();
         bill.setReservations(reservations);
-
-        Reminder reminder = new Reminder();
-        reminder.setBill(bill);
-        reminder.setEmailSent(false);
-        reminder.setTimestamp(OffsetDateTime.now().plusWeeks(1));//default 1 week
-
-        bill.addReminder(reminder);
-
         billRepository.save(bill);
-
-        reminderRepository.save(reminder);
 
         reservations.stream().forEach(reservation -> {
             reservation.setBill(bill);
