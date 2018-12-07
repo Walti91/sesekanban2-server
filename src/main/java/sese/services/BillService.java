@@ -41,53 +41,47 @@ public class BillService {
 
     }
 
-    public BillResponse payBill(Long id, Payment payment) {
-        Bill bill = getBillObjectById(id);
-        bill.addPayment(payment);
-        return new BillResponse(bill);
-    }
-
-    public BillResponse sendReminder(Long id, Reminder reminder) {
-        Bill bill = getBillObjectById(id);
-        bill.addReminder(reminder);
-        return new BillResponse(bill);
-    }
-
     @Transactional
     public ReminderResponse sendReminder(Long id) {
 
         Bill bill = getBillObjectById(id);
 
-        Reminder reminder = new Reminder();
-        reminder.setBill(bill);
-        reminder.setTimestamp(OffsetDateTime.now());
+        //dont send reminder if bill is cancelled
+        if (!bill.isCancelled()) {
+            Reminder reminder = new Reminder();
+            reminder.setBill(bill);
+            reminder.setTimestamp(OffsetDateTime.now());
 
-        bill.addReminder(reminder);
+            bill.addReminder(reminder);
 
-        Map<String, Object> variablesMail = new HashMap<>();
-        variablesMail.put("name", bill.getReservations().get(0).getCustomer().getName());
+            Map<String, Object> variablesMail = new HashMap<>();
+            variablesMail.put("name", bill.getReservations().get(0).getCustomer().getName());
 
-        String htmlText = TemplateUtil.processTemplate("mahnungs_mail", variablesMail);
+            String htmlText = TemplateUtil.processTemplate("mahnungs_mail", variablesMail);
 
-        Map<String, Object> variablesPdf = new HashMap<>();
-        variablesPdf.put("name", bill.getReservations().get(0).getCustomer().getName());
-        variablesPdf.put("bill", bill.getId());
-        // bill amount minus all payment amounts for that bill
-        variablesPdf.put("amount", bill.getAmount() - bill.getPayments().stream().map(p -> p.getValue()).mapToDouble(Double::doubleValue).sum());
+            Map<String, Object> variablesPdf = new HashMap<>();
+            variablesPdf.put("name", bill.getReservations().get(0).getCustomer().getName());
+            variablesPdf.put("bill", bill.getId());
+            // bill amount minus all payment amounts for that bill
+            variablesPdf.put("amount", bill.getAmount() - bill.getPayments().stream().map(p -> p.getValue()).mapToDouble(Double::doubleValue).sum());
 
-        byte[] pdfAttachment = PdfGenerationUtil.createPdf("mahnungs_pdf", variablesPdf);
+            byte[] pdfAttachment = PdfGenerationUtil.createPdf("mahnungs_pdf", variablesPdf);
 
-        try {
-            mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Mahnung", htmlText, "mahnung.pdf", pdfAttachment, "application/pdf");
-            reminder.setEmailSent(true);
-        } catch (Exception e) {
-            reminder.setEmailSent(false);
+            try {
+                mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Mahnung", htmlText, "mahnung.pdf", pdfAttachment, "application/pdf");
+                reminder.setEmailSent(true);
+            } catch (Exception e) {
+                reminder.setEmailSent(false);
+            }
+
+            Reminder saved = reminderRepository.save(reminder);
+            billRepository.save(bill);
+
+            return new ReminderResponse(saved);
+        }else{
+            //didnt send a reminder, so there is no reminder to return
+            return null;
         }
-
-        Reminder saved = reminderRepository.save(reminder);
-        billRepository.save(bill);
-
-        return new ReminderResponse(saved);
     }
 
     public BillResponse addNewBill(BillRequest billRequest) {
@@ -174,7 +168,7 @@ public class BillService {
         variables.put("betrag", betrag);
         String htmlText = TemplateUtil.processTemplate("rechnungs_mail", variables);
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("rechnungs_pdf", variables);
-        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Rechnung!", htmlText , "rechnung.pdf", pdfAttachment, "application/pdf");
+        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Rechnung!", htmlText, "rechnung.pdf", pdfAttachment, "application/pdf");
     }
 
 
