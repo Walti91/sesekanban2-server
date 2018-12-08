@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//a bill becomes overdue if it hasnt been paid in 2 weeks
 @Component
 public class OverdueService {
 
@@ -63,7 +62,7 @@ public class OverdueService {
         variables = new HashMap<>();
         System.out.println(bill.getReservations().toString());
         variables.put("bill", bill.getId());
-        variables.put("amount", bill.getAmount() * 0.05);//5% of the bill amount
+        variables.put("amount", bill.getAmount() * 0.05);//5% of the bill amoun
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Mahnung", htmlText, "mahnung.pdf", pdfAttachment, "application/pdf");
     }

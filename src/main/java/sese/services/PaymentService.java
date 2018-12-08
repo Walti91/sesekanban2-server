@@ -11,7 +11,6 @@ import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
 import sese.repositories.PaymentRepository;
-import sese.responses.PaymentResponse;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -39,13 +38,14 @@ public class PaymentService {
     @Transactional
     public void processPayment(Long billId){
 
+
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new SeseException(SeseError.BILL_ID_NOT_FOUND));
 
         Payment payment = new Payment();
         payment.setTimestamp(OffsetDateTime.now());
         payment.setValue(bill.getAmount());
 
-
+        sendPaymentMail(bill,payment);
         payment.setEmailSent(true);
 
         bill.addPayment(payment);
@@ -54,15 +54,7 @@ public class PaymentService {
         return new PaymentResponse(payment);
     }
 
-    /**
-     * Sends a confirmation mail
-     * Throws an exception when there's no bill with id = "billId".
-     * @param billId
-     */
-    @Transactional
-    public PaymentResponse sendConfirmation(Long billId){
-        Bill bill = billRepository.findById(billId).orElseThrow(() -> new SeseException(SeseError.BILL_ID_NOT_FOUND));
-
+    private void sendPaymentMail(Bill bill, Payment payment) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", bill.getReservations().get(0).getCustomer().getName());
 
@@ -74,8 +66,5 @@ public class PaymentService {
         variables.put("amount", bill.getAmount());
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "bestaetigung.pdf", pdfAttachment, "application/pdf");
-
-        return new PaymentResponse(bill.getPayments().get(0));
     }
-
 }
