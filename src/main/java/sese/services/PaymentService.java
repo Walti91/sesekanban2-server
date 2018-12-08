@@ -63,26 +63,19 @@ public class PaymentService {
     public PaymentResponse sendConfirmation(Long billId){
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new SeseException(SeseError.BILL_ID_NOT_FOUND));
 
-        if(bill.getPayments()!=null && !bill.getPayments().isEmpty()){
-            Map<String, Object> variables = new HashMap<>();
-            variables.put("name", bill.getReservations().get(0).getCustomer().getName());
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", bill.getReservations().get(0).getCustomer().getName());
 
-            String htmlText = TemplateUtil.processTemplate("zahlungs_mail", variables);
+        String htmlText = TemplateUtil.processTemplate("zahlungs_mail", variables);
 
-            variables = new HashMap<>();
-            System.out.println(bill.getReservations().toString());
-            variables.put("reservations", bill.getReservations());
-            variables.put("amount", bill.getAmount());
-            byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
-            mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "bestaetigung.pdf", pdfAttachment, "application/pdf");
+        variables = new HashMap<>();
+        System.out.println(bill.getReservations().toString());
+        variables.put("reservations", bill.getReservations());
+        variables.put("amount", bill.getAmount());
+        byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
+        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "bestaetigung.pdf", pdfAttachment, "application/pdf");
 
-            return new PaymentResponse(bill.getPayments().get(0));
-        }else{
-            return null;
-        }
-
-
-
+        return new PaymentResponse(bill.getPayments().get(0));
     }
 
 }

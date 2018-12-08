@@ -7,7 +7,6 @@ import sese.responses.BillResponse;
 import sese.responses.PaymentResponse;
 import sese.responses.ReminderResponse;
 import sese.services.BillService;
-import sese.services.OverdueService;
 import sese.services.PaymentService;
 
 import java.util.List;
@@ -18,9 +17,6 @@ public class BillController {
 
     @Autowired
     private BillService billService;
-
-    @Autowired
-    private OverdueService overdueService;
 
     @Autowired
     private PaymentService paymentService;
@@ -52,9 +48,9 @@ public class BillController {
         return billService.getAll();
     }
 
-    @GetMapping("/{id}/mahnung")
-    public BillResponse sendOverdueNotice(@PathVariable Long id) {
-        return overdueService.sendOverdueNotice(id);
+    @PostMapping("/{id}/mahnung")
+    public ReminderResponse sendRemainder(@PathVariable Long id) {
+        return billService.sendReminder(id);
     }
 
     @GetMapping("/{id}/zahlungsBestaetigung")
