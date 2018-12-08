@@ -50,6 +50,8 @@ public class PaymentService {
 
         bill.addPayment(payment);
         paymentRepository.save(payment);
+
+        return new PaymentResponse(payment);
     }
 
     /**

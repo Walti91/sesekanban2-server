@@ -20,8 +20,17 @@ public class PaymentControllerCustomer {
     @Autowired
     private PaymentService paymentService;
 
-    @GetMapping("/{id}/zahlungseingang")
-    public void processPayment(@PathVariable Long id) {
-        paymentService.processPayment(id);
+    @PostMapping("/{billId}/zahlungseingang")
+    public PaymentResponse processPayment(@PathVariable(name = "billId") Long billId, @RequestBody PaymentRequest paymentRequest) {
+        if (Objects.isNull(paymentRequest.getAmount())) {
+            throw new SeseException(SeseError.PAYMENT_AMOUNT_NOT_GIVEN);
+        }
+
+        return paymentService.processPayment(billId, paymentRequest.getAmount());
+    }
+
+    @GetMapping("/zahlung/{paymentId}/mail")
+    public PaymentResponse sendPaymentMail(@PathVariable(name = "paymentId") Long paymentId) {
+        return paymentService.sendPaymentMail(paymentId);
     }
 }
