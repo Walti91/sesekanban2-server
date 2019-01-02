@@ -16,6 +16,7 @@ import sese.requests.BillRequest;
 import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
 import sese.services.utils.BillCostCalculaterUtil;
+import sese.services.utils.LogUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -35,6 +36,8 @@ public class BillService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private LogUtil logUtil;
 
     @Autowired
     public BillService(ReservationRepository reservationRepository, BillRepository billRepository, ReminderRepository reminderRepository) {
@@ -89,6 +92,8 @@ public class BillService {
 
         Reminder saved = reminderRepository.save(reminder);
         billRepository.save(bill);
+
+        logUtil.logAction("Eine Mahnung mit der Id '"+saved.getId()+"' wurde für die Rechnung mit der Id '"+bill.getId()+"' versendet.");
 
         return new ReminderResponse(saved);
     }
@@ -145,6 +150,8 @@ public class BillService {
         });
 
         sendBillMail(bill);
+
+        logUtil.logAction("Eine Rechnung mit der Id '"+bill.getId()+"' wurde erstellt.");
 
         return new BillResponse(bill);
     }

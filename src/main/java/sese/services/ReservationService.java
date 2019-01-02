@@ -17,6 +17,7 @@ import sese.repositories.RoomRepository;
 import sese.requests.ReservationRequest;
 import sese.requests.RoomReservationRequest;
 import sese.responses.ReservationResponse;
+import sese.services.utils.LogUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -32,6 +33,9 @@ public class ReservationService {
     private CustomerService customerService;
     private ModelMapper modelMapper;
     private MailService mailService;
+
+    @Autowired
+    private LogUtil logUtil;
 
     @Autowired
     public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService) {
@@ -94,7 +98,11 @@ public class ReservationService {
 
         sendReservationMail(reservation);
 
-        return new ReservationResponse(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        logUtil.logAction("Eine neue Reservierung mit der Id '" + saved.getId() + "' wurde erstellt.");
+
+        return new ReservationResponse(saved);
     }
 
     private void sendReservationMail(Reservation reservation) {

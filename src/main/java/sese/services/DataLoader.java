@@ -23,9 +23,10 @@ public class DataLoader implements ApplicationRunner {
     private ReminderRepository reminderRepository;
     private MailService mailService;
     private PaymentRepository paymentRepository;
+    private SystemuserRepository systemuserRepository;
 
     @Autowired
-    public DataLoader(RoomRepository roomRepository, CustomerRepository customerRepository, ReservationRepository reservationRepository, BillRepository billRepository, PaymentRepository paymentRepository, ReminderRepository reminderRepository, MailService mailService) {
+    public DataLoader(RoomRepository roomRepository, CustomerRepository customerRepository, ReservationRepository reservationRepository, BillRepository billRepository, PaymentRepository paymentRepository, ReminderRepository reminderRepository, MailService mailService, SystemuserRepository systemuserRepository) {
         this.roomRepository = roomRepository;
         this.customerRepository = customerRepository;
         this.reservationRepository = reservationRepository;
@@ -33,6 +34,7 @@ public class DataLoader implements ApplicationRunner {
         this.reminderRepository = reminderRepository;
         this.mailService = mailService;
         this.paymentRepository = paymentRepository;
+        this.systemuserRepository = systemuserRepository;
     }
 
     @Override
@@ -42,6 +44,7 @@ public class DataLoader implements ApplicationRunner {
         loadReservations();
         //bills need to come after reservations cause it depends on it
         loadBills();
+        loadSystemuser();
     }
 
     private void loadRooms() {
@@ -151,5 +154,11 @@ public class DataLoader implements ApplicationRunner {
         paymentRepository.save(payment);
     }
 
+    private void loadSystemuser() {
+        Systemuser systemuser = new Systemuser();
+        systemuser.setName("Standard-Hotelmitarbeiter");
+
+        systemuserRepository.save(systemuser);
+    }
 
 }
