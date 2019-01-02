@@ -3,6 +3,7 @@ package sese.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sese.entities.Customer;
+import sese.requests.CustomerRequest;
 import sese.responses.CustomerResponse;
 import sese.services.CustomerService;
 
@@ -26,5 +27,11 @@ public class CustomerController {
     public void addCustomer(@RequestBody Customer customer) {
         System.out.println(customer);
         customerService.addNewCustomer(customer);
+    }
+
+    @PutMapping("/{customerId}")
+    public CustomerResponse updateCustomer(@RequestBody CustomerRequest customerRequest, @PathVariable Long customerId)
+    {
+        return customerService.updateCustomer(customerId, customerRequest);
     }
 }
