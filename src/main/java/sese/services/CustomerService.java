@@ -61,17 +61,28 @@ public class CustomerService {
         else
             throw new SeseException(SeseError.NO_CUSTOMER);
 
-        customer.setName(customerRequest.getName());
-        customer.setBirthday(customerRequest.getBirthday());
-        customer.setGender(customerRequest.getGender());
-        customer.setBillingAddress(customerRequest.getBillingAddress());
-        customer.setCompanyName(customerRequest.getCompanyName());
-        customer.setNote(customerRequest.getNote());
-        customer.setDiscount(customerRequest.getDiscount());
-        customer.setTelephoneNumber(customerRequest.getTelephoneNumber());
-        customer.setEmail(customerRequest.getEmail());
-        customer.setWeb(customerRequest.getWeb());
-        customer.setFax(customerRequest.getFax());
+        if(customerRequest.getName()!=null)
+            customer.setName(customerRequest.getName());
+        if(customerRequest.getBirthday()!=null)
+            customer.setBirthday(customerRequest.getBirthday());
+        if(customerRequest.getGender()!=null)
+            customer.setGender(customerRequest.getGender());
+        if(customerRequest.getBillingAddress()!=null)
+            customer.setBillingAddress(customerRequest.getBillingAddress());
+        if(customerRequest.getCompanyName()!=null)
+            customer.setCompanyName(customerRequest.getCompanyName());
+        if(customerRequest.getNote()!=null)
+            customer.setNote(customerRequest.getNote());
+        if(customerRequest.getDiscount()!=null)
+            customer.setDiscount(customerRequest.getDiscount());
+        if(customerRequest.getTelephoneNumber()!=null)
+            customer.setTelephoneNumber(customerRequest.getTelephoneNumber());
+        if(customerRequest.getEmail()!=null)
+            customer.setEmail(customerRequest.getEmail());
+        if(customerRequest.getWeb()!=null)
+            customer.setWeb(customerRequest.getWeb());
+        if(customerRequest.getFax()!=null)
+            customer.setFax(customerRequest.getFax());
 
         customerRepository.save(customer);
         return new CustomerResponse(customer);
