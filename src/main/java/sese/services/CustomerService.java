@@ -87,4 +87,20 @@ public class CustomerService {
         customerRepository.save(customer);
         return new CustomerResponse(customer);
     }
+
+    public CustomerResponse getCustomerById(Long customerId)
+    {
+        Optional<Customer> customerOptional=customerRepository.findById(customerId);
+        Customer customer;
+
+        if(customerOptional.isPresent())
+            customer=customerOptional.get();
+
+        else
+            throw new SeseException(SeseError.NO_CUSTOMER);
+
+        return new CustomerResponse(customer);
+
+
+    }
 }

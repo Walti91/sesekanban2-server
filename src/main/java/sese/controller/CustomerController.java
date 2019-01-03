@@ -34,4 +34,10 @@ public class CustomerController {
     {
         return customerService.updateCustomer(customerId, customerRequest);
     }
+
+    @GetMapping("/{customerId}")
+    public CustomerResponse getCustomerById(@PathVariable Long customerId)
+    {
+        return customerService.getCustomerById(customerId);
+    }
 }
