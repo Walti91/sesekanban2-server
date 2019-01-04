@@ -3,6 +3,7 @@ package sese.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sese.requests.BillRequest;
+import sese.responses.BillPdfResponse;
 import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
 import sese.services.BillService;
@@ -48,5 +49,10 @@ public class BillController {
     @PostMapping("/{id}/mahnung")
     public ReminderResponse sendRemainder(@PathVariable Long id) {
         return billService.sendReminder(id);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public BillPdfResponse getBillPdf(@PathVariable Long id) {
+        return billService.getBillPdfForBill(id);
     }
 }

@@ -1,6 +1,7 @@
 package sese.entities;
 
 import javax.persistence.*;
+import java.sql.Blob;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,9 @@ public class Bill {
 
     @OneToMany(mappedBy = "bill")
     private List<Reminder> reminders = new ArrayList<>();
+
+    @Lob
+    private Blob billPdf;
 
     private boolean paid;
 
@@ -107,6 +111,14 @@ public class Bill {
         this.created = created;
     }
 
+    public Blob getBillPdf() {
+        return billPdf;
+    }
+
+    public void setBillPdf(Blob billPdf) {
+        this.billPdf = billPdf;
+    }
+
     @Override
     public String toString() {
         return "Bill{" +
@@ -115,8 +127,9 @@ public class Bill {
                 ", reservations=" + reservations +
                 ", payments=" + payments +
                 ", reminders=" + reminders +
-                ", amount=" + amount +
+                ", content=" + billPdf +
                 ", paid=" + paid +
+                ", amount=" + amount +
                 ", created=" + created +
                 '}';
     }
