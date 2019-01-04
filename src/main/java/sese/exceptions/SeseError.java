@@ -35,6 +35,7 @@ public enum SeseError {
 
     BILL_ID_NOT_FOUND(HttpStatus.NOT_FOUND, 4000, "No bill with the delivered bill-id exists"),
     BILL_INVALID_RESERVATION(HttpStatus.NOT_FOUND, 4001, "No reservation with the delivered reservation-id from the bill exists"),
+    BILL_PDF_NOT_FOUND(HttpStatus.NOT_FOUND, 4002, "No bill pdf found for the given bill"),
 
     /*
     PAYMENT ERRORS 5000 - 5999

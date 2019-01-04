@@ -1,5 +1,6 @@
 package sese.services;
 
+import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +14,15 @@ import sese.repositories.BillRepository;
 import sese.repositories.ReminderRepository;
 import sese.repositories.ReservationRepository;
 import sese.requests.BillRequest;
+import sese.responses.BillPdfResponse;
 import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
 import sese.services.utils.BillCostCalculaterUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -160,6 +164,11 @@ public class BillService {
         variables.put("betrag", betrag);
         String htmlText = TemplateUtil.processTemplate("rechnungs_mail", variables);
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("rechnungs_pdf", variables);
+
+        Blob blob = BlobProxy.generateProxy(pdfAttachment);
+        bill.setBillPdf(blob);
+        billRepository.save(bill);
+
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Rechnung!", htmlText , "rechnung.pdf", pdfAttachment, "application/pdf");
     }
 
@@ -225,6 +234,25 @@ public class BillService {
 
         return bills;
 
+    }
+
+    public BillPdfResponse getBillPdfForBill(Long billId) {
+        Bill bill = getBillObjectById(billId);
+
+        try {
+            if(bill.getBillPdf().length() <= 0) {
+                throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+        }
+
+        try {
+            return new BillPdfResponse("data:application/pdf;base64," + new String(Base64.getEncoder().encode(bill.getBillPdf().getBytes(1, new Long(bill.getBillPdf().length()).intValue()))));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+        }
     }
 
 
