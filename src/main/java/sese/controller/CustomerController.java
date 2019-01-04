@@ -29,6 +29,7 @@ public class CustomerController {
         customerService.addNewCustomer(customer);
     }
 
+    @CrossOrigin(origins = "http://localhost:4200")
     @PutMapping("/{customerId}")
     public CustomerResponse updateCustomer(@RequestBody CustomerRequest customerRequest, @PathVariable Long customerId)
     {
