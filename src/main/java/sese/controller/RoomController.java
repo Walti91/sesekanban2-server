@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sese.entities.Room;
 import sese.requests.RoomRequest;
+import sese.responses.RoomFreeResponse;
 import sese.responses.RoomResponse;
 import sese.services.RoomService;
 
@@ -41,5 +42,10 @@ public class RoomController {
     @PostMapping("free")
     public List<RoomResponse> getFreeRooms(@RequestBody RoomRequest roomRequest) {
         return roomService.getFreeRooms(roomRequest);
+    }
+
+    @PostMapping("free/{roomId}")
+    public RoomFreeResponse isRoomFree(@PathVariable Long roomId, @RequestBody RoomRequest roomRequest) {
+        return roomService.isRoomFree(roomId, roomRequest);
     }
 }
