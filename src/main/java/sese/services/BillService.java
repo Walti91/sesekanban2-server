@@ -69,6 +69,12 @@ public class BillService {
         reminder.setBill(bill);
         reminder.setTimestamp(OffsetDateTime.now());
 
+
+        double amount=bill.getAmount();
+        amount=amount*1.03;
+        amount = Math.round(amount * 100.0) / 100.0;
+        bill.setAmount(amount);
+
         bill.addReminder(reminder);
 
         Map<String, Object> variablesMail = new HashMap<>();
