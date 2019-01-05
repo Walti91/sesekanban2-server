@@ -12,7 +12,6 @@ import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
 import sese.repositories.PaymentRepository;
 import sese.responses.PaymentResponse;
-import sese.services.utils.LogUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -33,7 +32,7 @@ public class PaymentService {
     private MailService mailService;
 
     @Autowired
-    private LogUtil logUtil;
+    private LogService logService;
 
     /**
      * Processes an incoming payment.
@@ -75,7 +74,7 @@ public class PaymentService {
 
         payment.setEmailSent(true);
 
-        logUtil.logAction("Eine Zahlungsbestätigung für die Zahlung mit der Id '" + payment.getId() + "' wurde für die Rechnung mit der Id '" + bill.getId() + "' versendet.");
+        logService.logAction("Eine Zahlungsbestätigung für die Zahlung mit der Id '" + payment.getId() + "' wurde für die Rechnung mit der Id '" + bill.getId() + "' versendet.");
 
         return new PaymentResponse(payment);
     }

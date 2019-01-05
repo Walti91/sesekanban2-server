@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sese.entities.Log;
+import sese.entities.Systemuser;
 import sese.repositories.LogRepository;
+import sese.repositories.SystemuserRepository;
 import sese.responses.LogResponse;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -21,8 +24,27 @@ public class LogService {
     @Autowired
     private LogRepository logRepository;
 
+    @Autowired
+    private SystemuserRepository systemuserRepository;
+
+    /**
+     * Since there is currently only one user --> that user is automatically chosen (== mocked)
+     * @param message
+     */
+    public void logAction(String message){
+        Log log = new Log();
+
+        Systemuser currentUser = systemuserRepository.findAll().get(0);
+
+        log.setSystemuser(currentUser);
+        log.setText(message);
+        log.setTimestamp(OffsetDateTime.now());
+
+        addLogEntry(log);
+    }
+
     @Transactional
-    public void addLogEntry(Log log) {
+    void addLogEntry(Log log) {
 
         if (Objects.isNull(log) || Objects.isNull(log.getText()) || Objects.isNull(log.getSystemuser())) {
             LOGGER.error("Log object is faulty: " + log);

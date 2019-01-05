@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import sese.entities.Customer;
 import sese.repositories.CustomerRepository;
 import sese.responses.CustomerResponse;
-import sese.services.utils.LogUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +20,7 @@ public class CustomerService {
     }
 
     @Autowired
-    private LogUtil logUtil;
+    private LogService logService;
 
     public List<CustomerResponse> getAll() {
         List<Customer> customers = customerRepository.findAll();
@@ -47,6 +46,6 @@ public class CustomerService {
 
         Customer saved = customerRepository.save(customer);
 
-        logUtil.logAction("Ein Kunde mit der Id '" + saved.getId() + "' wurde erstellt.");
+        logService.logAction("Ein Kunde mit der Id '" + saved.getId() + "' wurde erstellt.");
     }
 }
