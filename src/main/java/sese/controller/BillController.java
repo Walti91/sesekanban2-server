@@ -55,4 +55,11 @@ public class BillController {
     public BillPdfResponse getBillPdf(@PathVariable Long id) {
         return billService.getBillPdfForBill(id);
     }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @PutMapping("/{id}/storno")
+    public BillResponse cancelBill(@PathVariable Long id)
+    {
+        return billService.cancleBill(id);
+    }
 }
