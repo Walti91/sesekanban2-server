@@ -25,6 +25,9 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    @Autowired
+    private LogService logService;
+
     public List<CustomerResponse> getAll() {
         List<Customer> customers = customerRepository.findAll();
 
@@ -47,7 +50,9 @@ public class CustomerService {
             throw new IllegalArgumentException("Customer id must be null");
         }
 
-        customerRepository.save(customer);
+        Customer saved = customerRepository.save(customer);
+
+        logService.logAction("Ein Kunde mit der Id '" + saved.getId() + "' wurde erstellt.");
     }
 
     public CustomerResponse updateCustomer(Long customerId, CustomerRequest customerRequest)

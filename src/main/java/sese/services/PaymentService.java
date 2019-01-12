@@ -31,6 +31,9 @@ public class PaymentService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private LogService logService;
+
     /**
      * Processes an incoming payment.
      * Throws an exception when there's no bill with id = "billId".
@@ -70,6 +73,8 @@ public class PaymentService {
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", customer.getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "zahlungsbestaetigung.pdf", pdfAttachment, "application/pdf");
 
         payment.setEmailSent(true);
+
+        logService.logAction("Eine Zahlungsbestätigung für die Zahlung mit der Id '" + payment.getId() + "' wurde für die Rechnung mit der Id '" + bill.getId() + "' versendet.");
 
         return new PaymentResponse(payment);
     }

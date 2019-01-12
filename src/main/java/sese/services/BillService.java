@@ -39,6 +39,8 @@ public class BillService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private LogService logService;
 
     @Autowired
     public BillService(ReservationRepository reservationRepository, BillRepository billRepository, ReminderRepository reminderRepository) {
@@ -100,6 +102,8 @@ public class BillService {
         Reminder saved = reminderRepository.save(reminder);
         billRepository.save(bill);
 
+        logService.logAction("Eine Mahnung mit der Id '"+saved.getId()+"' wurde für die Rechnung mit der Id '"+bill.getId()+"' versendet.");
+
         return new ReminderResponse(saved);
     }
 
@@ -155,6 +159,8 @@ public class BillService {
         });
 
         sendBillMail(bill);
+
+        logService.logAction("Eine Rechnung mit der Id '"+bill.getId()+"' wurde erstellt.");
 
         return new BillResponse(bill);
     }

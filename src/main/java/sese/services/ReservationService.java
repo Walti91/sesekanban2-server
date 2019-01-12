@@ -34,6 +34,9 @@ public class ReservationService {
     private MailService mailService;
 
     @Autowired
+    private LogService logService;
+
+    @Autowired
     public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService) {
         this.customerRepository = customerRepository;
         this.customerService = customerService;
@@ -94,7 +97,11 @@ public class ReservationService {
 
         sendReservationMail(reservation);
 
-        return new ReservationResponse(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        logService.logAction("Eine neue Reservierung mit der Id '" + saved.getId() + "' wurde erstellt.");
+
+        return new ReservationResponse(saved);
     }
 
     private void sendReservationMail(Reservation reservation) {
