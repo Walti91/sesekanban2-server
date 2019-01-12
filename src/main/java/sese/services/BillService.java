@@ -267,5 +267,39 @@ public class BillService {
         }
     }
 
+    public BillResponse cancleBill(Long billId)
+    {
+        Optional<Bill> billOptional=billRepository.findById(billId);
+        Bill bill;
+
+        if(billOptional.isPresent())
+            bill=billOptional.get();
+
+        else
+            throw new SeseException(SeseError.BILL_ID_NOT_FOUND);
+
+        bill.setCancelled(true);
+        billRepository.save(bill);
+        sendCancelMail(bill);
+
+        return new BillResponse(bill);
+    }
+
+    private void sendCancelMail(Bill bill)
+    {
+        Reservation reservation = bill.getReservations().stream().findFirst().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
+        double betrag = bill.getReservations().stream()
+                .map(r -> r.getRoomReservations().stream().map(rr -> rr.getRoom().getPriceAdult() * rr.getAdults() + rr.getRoom().getPriceChild() * rr.getChildren()).reduce(0D, (a, b) -> a + b))
+                .reduce(0D, (a, b) -> a + b);
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", reservation.getCustomer().getName());
+        variables.put("date", bill.getCreated());
+        variables.put("amount", betrag);
+
+        String htmlText = TemplateUtil.processTemplate("storno_mail", variables);
+        mailService.sendMail("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Stornierung der Rechnung", htmlText);
+
+    }
+
 
 }
