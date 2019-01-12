@@ -24,4 +24,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     //@Query(value = "select room from room where room.id not in (select roomReservation.room.id from room_reservation rr join reservation r on rr.roomId = r.id where r.startDate > :endDate or roomReservation.reservation.endDate < :startDate)", nativeQuery = true)
     @Query("select room from Room room where room not in (select room from Room room join room.reservations reservation where reservation.reservation.startDate <= :startDate and reservation.reservation.endDate >= :endDate)")
     List<Room> findAllByFree(@Param("startDate")OffsetDateTime startDate, @Param("endDate")OffsetDateTime endDate);
+
+    @Query("select room from Room room where room.id = :roomId and room not in (select room from Room room join room.reservations reservation where reservation.reservation.startDate <= :startDate and reservation.reservation.endDate >= :endDate)")
+    Room isRoomFree(@Param("roomId") Long roomId, @Param("startDate") OffsetDateTime startDate, @Param("endDate") OffsetDateTime endDate);
 }

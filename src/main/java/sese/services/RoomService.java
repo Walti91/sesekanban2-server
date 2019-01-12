@@ -8,6 +8,7 @@ import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.RoomRepository;
 import sese.requests.RoomRequest;
+import sese.responses.RoomFreeResponse;
 import sese.responses.RoomResponse;
 
 import javax.swing.text.html.Option;
@@ -67,5 +68,15 @@ public class RoomService {
 
     public List<RoomResponse> getFreeRooms(RoomRequest roomRequest) {
         return roomRepository.findAllByFree(roomRequest.getStartDate(), roomRequest.getEndDate()).stream().map(RoomResponse::new).collect(Collectors.toList());
+    }
+
+    public RoomFreeResponse isRoomFree(Long roomId, RoomRequest roomRequest) {
+        Room freeRoom = roomRepository.isRoomFree(roomId, roomRequest.getStartDate(), roomRequest.getEndDate());
+
+        if(freeRoom != null) {
+            return new RoomFreeResponse(true);
+        } else {
+            return new RoomFreeResponse(false);
+        }
     }
 }
