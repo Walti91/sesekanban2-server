@@ -20,6 +20,7 @@ import sese.responses.ReservationResponse;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,5 +144,58 @@ public class ReservationService {
 
     public List<ReservationResponse> getAllReservations() {
         return reservationRepository.findAll().stream().map(ReservationResponse::new).collect(Collectors.toList());
+    }
+
+    public List<ReservationResponse> getTodaysStartingReservations()
+    {
+        List<Reservation>reservationList=reservationRepository.findByStartDateBetween(getStartOfToday(),getEndOfToday());
+        List<ReservationResponse> reservationResponseList=new ArrayList<>();
+
+        for(Reservation reservation: reservationList)
+        {
+            reservationResponseList.add(new ReservationResponse(reservation));
+        }
+
+        return reservationResponseList;
+    }
+
+    private OffsetDateTime getStartOfToday()
+    {
+        OffsetDateTime now=OffsetDateTime.now();
+
+        String monat;
+        String tag;
+
+        if(now.getMonthValue()<10)
+            monat="0"+now.getMonthValue();
+        else
+            monat=""+now.getMonthValue();
+
+        if(now.getDayOfMonth()<10)
+            tag="0"+now.getDayOfMonth();
+        else
+            tag=""+now.getDayOfMonth();
+
+        OffsetDateTime startOfToday=OffsetDateTime.parse(now.getYear()+"-"+monat+"-"+tag+"T00:00:00+01:00");
+        return startOfToday;
+    }
+
+    private OffsetDateTime getEndOfToday()
+    {
+        OffsetDateTime endOfToday=getStartOfToday().plusDays(1);
+        return endOfToday;
+    }
+
+    public List<ReservationResponse> getTodaysEndingReservations()
+    {
+        List<Reservation>reservationList=reservationRepository.findByEndDateBetween(getStartOfToday(),getEndOfToday());
+        List<ReservationResponse> reservationResponseList=new ArrayList<>();
+
+        for(Reservation reservation: reservationList)
+        {
+            reservationResponseList.add(new ReservationResponse(reservation));
+        }
+
+        return reservationResponseList;
     }
 }
