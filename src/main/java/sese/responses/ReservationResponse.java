@@ -73,4 +73,16 @@ public class ReservationResponse {
     public void setComments(List<String> comments) {
         this.comments = comments;
     }
+
+    @Override
+    public String toString() {
+        return "ReservationResponse{" +
+                "id=" + id +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", customer=" + customer +
+                ", roomReservations=" + roomReservations +
+                ", comments=" + comments +
+                '}';
+    }
 }

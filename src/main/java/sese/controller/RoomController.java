@@ -2,13 +2,11 @@ package sese.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import sese.entities.Room;
 import sese.requests.RoomRequest;
 import sese.responses.RoomFreeResponse;
 import sese.responses.RoomResponse;
 import sese.services.RoomService;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController

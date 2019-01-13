@@ -22,4 +22,12 @@ public class RoomRequest {
     public void setEndDate(OffsetDateTime endDate) {
         this.endDate = endDate;
     }
+
+    @Override
+    public String toString() {
+        return "RoomRequest{" +
+                "startDate=" + startDate +
+                ", endDate=" + endDate +
+                '}';
+    }
 }
