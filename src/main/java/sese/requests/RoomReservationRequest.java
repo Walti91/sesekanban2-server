@@ -1,10 +1,13 @@
 package sese.requests;
 
+import sese.entities.Pension;
+
 public class RoomReservationRequest {
 
     private Long roomId;
     private Integer adults;
     private Integer children;
+    private Pension pension;
 
     public Long getRoomId() {
         return roomId;
@@ -28,5 +31,13 @@ public class RoomReservationRequest {
 
     public void setChildren(Integer children) {
         this.children = children;
+    }
+
+    public Pension getPension() {
+        return pension;
+    }
+
+    public void setPension(Pension pension) {
+        this.pension = pension;
     }
 }
