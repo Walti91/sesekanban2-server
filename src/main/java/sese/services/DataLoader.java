@@ -148,7 +148,7 @@ public class DataLoader implements ApplicationRunner {
         //bill.setCreated(OffsetDateTime.now().minusWeeks(1L));
         List<Reservation> reservations = reservationRepository.findAll();
         bill.setReservations(reservations);
-
+        bill.setCreated(OffsetDateTime.now().minusWeeks(3));
         Reservation firstReservation = bill.getReservations().stream().findFirst().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
 
         double betrag = bill.getReservations().stream()
