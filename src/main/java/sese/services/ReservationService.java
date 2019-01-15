@@ -202,6 +202,7 @@ public class ReservationService {
         return reservationResponseList;
     }
 
+    @Transactional
     public void deleteReservation(Long reservationId) {
         Optional<Reservation> ro = reservationRepository.findById(reservationId);
 
@@ -209,6 +210,7 @@ public class ReservationService {
             Reservation reservation = ro.get();
             billService.cancleBill(reservation.getBill().getId());
             reservationRepository.deleteById(reservationId);
+            logService.logAction("Die Reservierung mit der Id '" + reservationId + "' wurde gelöscht");
         } else {
             throw new SeseException(SeseError.RESERVATION_NOT_FOUND);
         }

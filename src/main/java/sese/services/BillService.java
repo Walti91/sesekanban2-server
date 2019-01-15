@@ -282,6 +282,8 @@ public class BillService {
         billRepository.save(bill);
         sendCancelMail(bill);
 
+        logService.logAction("Die Rechnung mit der Id '" + billId + "' wurde storniert");
+
         return new BillResponse(bill);
     }
 
