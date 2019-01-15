@@ -199,4 +199,8 @@ public class ReservationService {
 
         return reservationResponseList;
     }
+
+    public void deleteReservation(Long reservationId) {
+        reservationRepository.deleteById(reservationId);
+    }
 }

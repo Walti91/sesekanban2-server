@@ -73,4 +73,9 @@ public class ReservationController {
     {
         return reservationService.getTodaysEndingReservations();
     }
+
+    @PostMapping("/{reservationId}/delete")
+    public void deleteReservation(@PathVariable Long reservationId) {
+        reservationService.deleteReservation(reservationId);
+    }
 }
