@@ -142,7 +142,6 @@ public class BillService {
         bill.setAmount(amount);
         bill.setCancelled(false);
         bill.setReservations(reservations);
-
         billRepository.save(bill);
 
         reservations.stream().forEach(reservation -> {
@@ -300,6 +299,18 @@ public class BillService {
         String htmlText = TemplateUtil.processTemplate("storno_mail", variables);
         mailService.sendMail("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Stornierung der Rechnung", htmlText);
 
+    }
+
+    public List<BillResponse> getOverdueBills()
+    {
+        OffsetDateTime date=OffsetDateTime.now().minusWeeks(2);
+        List<Bill> billList=billRepository.findByCreatedLessThanEqual(date);
+        List<BillResponse> billResponseList=new ArrayList<>();
+
+        for(Bill bill:billList)
+            billResponseList.add(new BillResponse(bill));
+
+        return billResponseList;
     }
 
 

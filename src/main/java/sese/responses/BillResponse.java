@@ -2,6 +2,7 @@ package sese.responses;
 
 import sese.entities.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ public class BillResponse {
     private List<PaymentResponse> payments;
     private List<ReminderResponse> reminders;
     private Double amount;
+    private OffsetDateTime created;
 
     public BillResponse(Bill bill){
         id = bill.getId();
@@ -21,6 +23,7 @@ public class BillResponse {
         payments = bill.getPayments().stream().map(PaymentResponse::new).collect(Collectors.toList());
         reminders = bill.getReminders().stream().map(ReminderResponse::new).collect(Collectors.toList());
         amount = bill.getAmount();
+        created=bill.getCreated();
     }
 
     public boolean isCancelled() {
@@ -71,6 +74,14 @@ public class BillResponse {
         this.reminders = reminders;
     }
 
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
     @Override
     public String toString() {
         return "BillResponse{" +
@@ -80,6 +91,7 @@ public class BillResponse {
                 ", payments=" + payments +
                 ", reminders=" + reminders +
                 ", amount=" + amount +
+                ", created=" + created +
                 '}';
     }
 }
