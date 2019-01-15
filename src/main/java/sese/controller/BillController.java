@@ -8,6 +8,7 @@ import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
 import sese.services.BillService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -54,6 +55,12 @@ public class BillController {
     @GetMapping("/{id}/pdf")
     public BillPdfResponse getBillPdf(@PathVariable Long id) {
         return billService.getBillPdfForBill(id);
+    }
+
+    @GetMapping("/overdue")
+    public List<BillResponse> getOverdueBills()
+    {
+        return billService.getOverdueBills();
     }
 
     @CrossOrigin(origins = "http://localhost:4200")
