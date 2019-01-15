@@ -151,6 +151,7 @@ public class BillService {
             Bill oldBill = reservation.getBill();
             if (oldBill != null && oldBill != bill) {
                 oldBill.setCancelled(true);
+
                 billRepository.save(oldBill);
             }
 

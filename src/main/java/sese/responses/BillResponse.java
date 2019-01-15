@@ -70,4 +70,16 @@ public class BillResponse {
     public void setReminders(List<ReminderResponse> reminders) {
         this.reminders = reminders;
     }
+
+    @Override
+    public String toString() {
+        return "BillResponse{" +
+                "id=" + id +
+                ", isCancelled=" + isCancelled +
+                ", reservations=" + reservations +
+                ", payments=" + payments +
+                ", reminders=" + reminders +
+                ", amount=" + amount +
+                '}';
+    }
 }
