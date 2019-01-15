@@ -64,6 +64,7 @@ public class ReservationService {
             if(optionalRoom.isPresent()) {
                 Room room = optionalRoom.get();
                 RoomReservation roomReservation = new RoomReservation();
+                roomReservation.setPension(roomReservationRequest.getPension());
                 roomReservation.setRoom(room);
                 roomReservation.setAdults(roomReservationRequest.getAdults());
                 roomReservation.setChildren(roomReservationRequest.getChildren());

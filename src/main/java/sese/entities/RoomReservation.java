@@ -19,6 +19,8 @@ public class RoomReservation {
 
     private Integer children;
 
+    private Pension pension;
+
     public Long getId() {
         return id;
     }
@@ -59,6 +61,14 @@ public class RoomReservation {
         this.children = children;
     }
 
+    public Pension getPension() {
+        return pension;
+    }
+
+    public void setPension(Pension pension) {
+        this.pension = pension;
+    }
+
     @Override
     public String toString() {
         return "RoomReservation{" +
@@ -66,6 +76,7 @@ public class RoomReservation {
                 ", room=" + room +
                 ", adults=" + adults +
                 ", children=" + children +
+                ", pension=" + pension +
                 '}';
     }
 }
