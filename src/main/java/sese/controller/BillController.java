@@ -8,7 +8,6 @@ import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
 import sese.services.BillService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -65,6 +64,13 @@ public class BillController {
     @PutMapping("/{id}/storno")
     public BillResponse cancelBill(@PathVariable Long id)
     {
-        return billService.cancleBill(id);
+        return billService.cancelBill(id);
+    }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @PutMapping("/{id}/rabatt/{discount}")
+    public BillResponse updateBillDiscount(@PathVariable Long id, @PathVariable int discount)
+    {
+        return billService.updateBillDiscount(id,discount);
     }
 }

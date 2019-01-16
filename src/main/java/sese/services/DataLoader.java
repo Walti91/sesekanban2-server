@@ -156,6 +156,7 @@ public class DataLoader implements ApplicationRunner {
                 .reduce(0D, (a, b) -> a + b);
 
         bill.setAmount(betrag);
+        bill.setDiscount(reservations.get(0).getCustomer().getDiscount());
 
         Bill saved = billRepository.save(bill);
 
