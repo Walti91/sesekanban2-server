@@ -17,7 +17,7 @@ import sese.requests.BillRequest;
 import sese.responses.BillPdfResponse;
 import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
-import sese.services.utils.BillCostCalculaterUtil;
+import sese.services.utils.BillCostCalculatorUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -123,6 +123,7 @@ public class BillService {
         }
 
         double amount = 0.0;
+        int discount = 0;
 
         List<Reservation> reservations = new ArrayList<>();
         for (Long reservationId : reservationIds) {
@@ -135,11 +136,13 @@ public class BillService {
             Reservation reservation = reservationOptional.get();
             reservations.add(reservation);
 
-            amount += BillCostCalculaterUtil.calculate(reservation);
+            discount = reservation.getCustomer().getDiscount();
+            amount += BillCostCalculatorUtil.calculate(reservation,discount);
         }
 
         Bill bill = new Bill();
         bill.setAmount(amount);
+        bill.setDiscount(discount);
         bill.setCancelled(false);
         bill.setReservations(reservations);
         billRepository.save(bill);
@@ -267,7 +270,39 @@ public class BillService {
         }
     }
 
-    public BillResponse cancleBill(Long billId)
+    public BillResponse updateBillDiscount(Long billId, int discount){
+        Optional<Bill> billOptional=billRepository.findById(billId);
+        Bill bill;
+
+        if(billOptional.isPresent()){
+            bill=billOptional.get();
+        }else {
+            throw new SeseException(SeseError.BILL_ID_NOT_FOUND);
+        }
+
+        if(discount<0 || discount>100){
+            throw new SeseException(SeseError.BILL_INVALID_DISCOUNT);
+        }
+
+        List<Reservation> reservations = bill.getReservations();
+
+        double amount = 0.0;
+
+        for (Reservation reservation:reservations) {
+            amount += BillCostCalculatorUtil.calculate(reservation,discount);
+        }
+        bill.setAmount(amount);
+        bill.setDiscount(discount);
+
+        billRepository.save(bill);
+
+        logService.logAction("Der Rabatt von der Rechnung mit der Id '" + billId + "' wurde geändert auf "+discount);
+
+        return new BillResponse(bill);
+
+    }
+
+    public BillResponse cancelBill(Long billId)
     {
         Optional<Bill> billOptional=billRepository.findById(billId);
         Bill bill;

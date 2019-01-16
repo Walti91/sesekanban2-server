@@ -14,16 +14,18 @@ public class BillResponse {
     private List<PaymentResponse> payments;
     private List<ReminderResponse> reminders;
     private Double amount;
+    private int discount;
     private OffsetDateTime created;
 
-    public BillResponse(Bill bill){
+    public BillResponse(Bill bill) {
         id = bill.getId();
         isCancelled = bill.isCancelled();
         reservations = bill.getReservations().stream().map(ReservationResponse::new).collect(Collectors.toList());
         payments = bill.getPayments().stream().map(PaymentResponse::new).collect(Collectors.toList());
         reminders = bill.getReminders().stream().map(ReminderResponse::new).collect(Collectors.toList());
         amount = bill.getAmount();
-        created=bill.getCreated();
+        discount = bill.getDiscount();
+        created = bill.getCreated();
     }
 
     public boolean isCancelled() {
@@ -91,7 +93,16 @@ public class BillResponse {
                 ", payments=" + payments +
                 ", reminders=" + reminders +
                 ", amount=" + amount +
+                ", discount=" + discount +
                 ", created=" + created +
                 '}';
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        this.discount = discount;
     }
 }

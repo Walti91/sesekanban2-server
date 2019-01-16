@@ -30,6 +30,8 @@ public class Bill {
 
     private double amount;
 
+    private int discount;
+
     private OffsetDateTime created;
 
     public Bill() {
@@ -130,7 +132,16 @@ public class Bill {
                 ", content=" + billPdf +
                 ", paid=" + paid +
                 ", amount=" + amount +
+                ", discount= "+ discount +
                 ", created=" + created +
                 '}';
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        this.discount = discount;
     }
 }
