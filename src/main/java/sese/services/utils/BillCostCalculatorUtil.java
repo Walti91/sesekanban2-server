@@ -4,13 +4,12 @@ import sese.entities.Reservation;
 import sese.entities.Room;
 import sese.entities.RoomReservation;
 
-import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-public final class BillCostCalculaterUtil {
+public final class BillCostCalculatorUtil {
 
-    public static double calculate(Reservation reservation) {
+    public static double calculate(Reservation reservation, int discount) {
 
         List<RoomReservation> roomReservations = reservation.getRoomReservations();
 
@@ -55,7 +54,6 @@ public final class BillCostCalculaterUtil {
 
         }
 
-        int discount = reservation.getCustomer().getDiscount();
         total =  total - ((discount*total)/100);
 
         return total;

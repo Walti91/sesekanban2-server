@@ -208,7 +208,7 @@ public class ReservationService {
 
         if(ro.isPresent()) {
             Reservation reservation = ro.get();
-            billService.cancleBill(reservation.getBill().getId());
+            billService.cancelBill(reservation.getBill().getId());
             reservationRepository.deleteById(reservationId);
             logService.logAction("Die Reservierung mit der Id '" + reservationId + "' wurde gelöscht");
         } else {
