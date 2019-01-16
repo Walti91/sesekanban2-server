@@ -2,12 +2,16 @@ package sese.requests;
 
 import sese.entities.Pension;
 
+import java.time.OffsetDateTime;
+
 public class RoomReservationRequest {
 
     private Long roomId;
     private Integer adults;
     private Integer children;
     private Pension pension;
+    private OffsetDateTime from;
+    private OffsetDateTime to;
 
     public Long getRoomId() {
         return roomId;
@@ -39,5 +43,21 @@ public class RoomReservationRequest {
 
     public void setPension(Pension pension) {
         this.pension = pension;
+    }
+
+    public OffsetDateTime getFrom() {
+        return from;
+    }
+
+    public void setFrom(OffsetDateTime from) {
+        this.from = from;
+    }
+
+    public OffsetDateTime getTo() {
+        return to;
+    }
+
+    public void setTo(OffsetDateTime to) {
+        this.to = to;
     }
 }

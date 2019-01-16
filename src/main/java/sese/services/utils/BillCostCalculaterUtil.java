@@ -4,7 +4,6 @@ import sese.entities.Reservation;
 import sese.entities.Room;
 import sese.entities.RoomReservation;
 
-import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -16,43 +15,31 @@ public final class BillCostCalculaterUtil {
 
         double total = 0.0;
 
-        long days = ChronoUnit.DAYS.between(reservation.getStartDate(), reservation.getEndDate());
-
-
         for (RoomReservation roomReservation : roomReservations) {
-            int adults = roomReservation.getAdults();
-            int children = roomReservation.getChildren();
+
+            long days = ChronoUnit.DAYS.between(roomReservation.getStartDate(), roomReservation.getEndDate());
+
             Room room = roomReservation.getRoom();
 
-            double adultPriceTotal = room.getPriceAdult() * adults;
-            double childrenPriceTotal = room.getPriceChild() * children;
+            double priceAdultPerDay = room.getPriceAdult();
+            double priceChildPerDay = room.getPriceChild();
 
-            int pensionPricePerDay;
-            //full pension = 3 meals
-            //half pension = 2 meals
-            //breakfast = 1 meal
-            //5 euro per meal
             switch (roomReservation.getPension()) {
                 case FULL:
-                    pensionPricePerDay = 15;
+                    priceAdultPerDay += 60;
+                    priceChildPerDay += 45;
                     break;
                 case HALF:
-                    pensionPricePerDay = 10;
+                    priceAdultPerDay += 35;
+                    priceChildPerDay += 25;
                     break;
                 case BREAKFAST:
-                    pensionPricePerDay = 5;
+                    priceAdultPerDay += 15;
+                    priceChildPerDay += 12;
                     break;
-                default:
-                    //default is breakfast, shouldnt come here
-                    pensionPricePerDay = 5;
-                    break;
-
             }
 
-            double pensionTotal = (adults + children) * days * pensionPricePerDay;
-
-            total += adultPriceTotal + childrenPriceTotal + pensionTotal;
-
+            total += priceAdultPerDay * days + priceChildPerDay * days;
         }
 
         int discount = reservation.getCustomer().getDiscount();
