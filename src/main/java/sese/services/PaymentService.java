@@ -4,11 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sese.entities.Bill;
+import sese.entities.Customer;
 import sese.entities.Payment;
+import sese.entities.Reservation;
 import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
 import sese.repositories.PaymentRepository;
+import sese.responses.PaymentResponse;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
@@ -28,41 +31,51 @@ public class PaymentService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private LogService logService;
+
     /**
      * Processes an incoming payment.
      * Throws an exception when there's no bill with id = "billId".
      * @param billId
      */
     @Transactional
-    public void processPayment(Long billId){
-
-
+    public PaymentResponse processPayment(Long billId, double amount){
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new SeseException(SeseError.BILL_ID_NOT_FOUND));
 
         Payment payment = new Payment();
         payment.setTimestamp(OffsetDateTime.now());
-        payment.setValue(bill.getAmount());
-
-        sendPaymentMail(bill,payment);
-        payment.setEmailSent(true);
+        payment.setValue(amount);
 
         bill.addPayment(payment);
-
-        billRepository.save(bill);
         paymentRepository.save(payment);
+
+        return new PaymentResponse(payment);
     }
 
-    private void sendPaymentMail(Bill bill, Payment payment) {
+    @Transactional
+    public PaymentResponse sendPaymentMail(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new SeseException(SeseError.PAYMENT_NOT_FOUND));
+        Bill bill = payment.getBill();
+
+        Reservation reservation = bill.getReservations().stream().findAny().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
+        Customer customer = reservation.getCustomer();
         Map<String, Object> variables = new HashMap<>();
-        variables.put("name", bill.getReservations().get(0).getCustomer().getName());
+        variables.put("name", customer.getName());
 
         String htmlText = TemplateUtil.processTemplate("zahlungs_mail", variables);
 
         variables = new HashMap<>();
         System.out.println(bill.getReservations().toString());
-        variables.put("reservations", bill.getReservations());
-        variables.put("amount", bill.getAmount());
+        variables.put("billid", bill.getId());
+        variables.put("amount", payment.getValue());
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("zahlungs_pdf", variables);
-        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", bill.getReservations().get(0).getCustomer().getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "bestaetigung.pdf", pdfAttachment, "application/pdf");
+        mailService.sendMailWithAttachment("hotelverwaltung@sese.at", customer.getEmail(), "Ihre Zahlung ist eingegangen", htmlText , "zahlungsbestaetigung.pdf", pdfAttachment, "application/pdf");
+
+        payment.setEmailSent(true);
+
+        logService.logAction("Eine Zahlungsbestätigung für die Zahlung mit der Id '" + payment.getId() + "' wurde für die Rechnung mit der Id '" + bill.getId() + "' versendet.");
+
+        return new PaymentResponse(payment);
     }
 }

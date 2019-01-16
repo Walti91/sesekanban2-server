@@ -1,8 +1,8 @@
 package sese.entities;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import javax.persistence.*;
+import java.sql.Blob;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,21 @@ public class Bill {
     @OneToMany(mappedBy = "bill")
     private List<Reminder> reminders = new ArrayList<>();
 
+    @Lob
+    private Blob billPdf;
+
+    private boolean paid;
+
     private double amount;
+
+    private int discount;
+
+    private OffsetDateTime created;
+
+    public Bill() {
+        paid = false;
+        created = OffsetDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -83,6 +97,30 @@ public class Bill {
         this.amount = amount;
     }
 
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public void setPaid(boolean paid) {
+        this.paid = paid;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public Blob getBillPdf() {
+        return billPdf;
+    }
+
+    public void setBillPdf(Blob billPdf) {
+        this.billPdf = billPdf;
+    }
+
     @Override
     public String toString() {
         return "Bill{" +
@@ -91,7 +129,19 @@ public class Bill {
                 ", reservations=" + reservations +
                 ", payments=" + payments +
                 ", reminders=" + reminders +
+                ", content=" + billPdf +
+                ", paid=" + paid +
                 ", amount=" + amount +
+                ", discount= "+ discount +
+                ", created=" + created +
                 '}';
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        this.discount = discount;
     }
 }

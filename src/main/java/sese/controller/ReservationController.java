@@ -61,4 +61,22 @@ public class ReservationController {
     {
         return reservationService.getAllReservations();
     }
+
+    @GetMapping("/starting")
+    public List<ReservationResponse> getTodaysStartingReservations()
+    {
+        return reservationService.getTodaysStartingReservations();
+    }
+
+    @GetMapping("/ending")
+    public List<ReservationResponse> getTodaysEndingReservations()
+    {
+        return reservationService.getTodaysEndingReservations();
+    }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @DeleteMapping("/{reservationId}/delete")
+    public void deleteReservation(@PathVariable Long reservationId) {
+        reservationService.deleteReservation(reservationId);
+    }
 }

@@ -1,21 +1,28 @@
 package sese.services;
 
+import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sese.entities.*;
+import sese.entities.Bill;
+import sese.entities.Payment;
+import sese.entities.Reminder;
+import sese.entities.Reservation;
 import sese.exceptions.SeseError;
 import sese.exceptions.SeseException;
 import sese.repositories.BillRepository;
 import sese.repositories.ReminderRepository;
 import sese.repositories.ReservationRepository;
 import sese.requests.BillRequest;
+import sese.responses.BillPdfResponse;
 import sese.responses.BillResponse;
 import sese.responses.ReminderResponse;
-import sese.services.utils.BillCostCalculaterUtil;
+import sese.services.utils.BillCostCalculatorUtil;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +39,8 @@ public class BillService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private LogService logService;
 
     @Autowired
     public BillService(ReservationRepository reservationRepository, BillRepository billRepository, ReminderRepository reminderRepository) {
@@ -62,6 +71,12 @@ public class BillService {
         reminder.setBill(bill);
         reminder.setTimestamp(OffsetDateTime.now());
 
+
+        double amount=bill.getAmount();
+        amount=amount*1.03;
+        amount = Math.round(amount * 100.0) / 100.0;
+        bill.setAmount(amount);
+
         bill.addReminder(reminder);
 
         Map<String, Object> variablesMail = new HashMap<>();
@@ -87,6 +102,8 @@ public class BillService {
         Reminder saved = reminderRepository.save(reminder);
         billRepository.save(bill);
 
+        logService.logAction("Eine Mahnung mit der Id '"+saved.getId()+"' wurde für die Rechnung mit der Id '"+bill.getId()+"' versendet.");
+
         return new ReminderResponse(saved);
     }
 
@@ -106,6 +123,7 @@ public class BillService {
         }
 
         double amount = 0.0;
+        int discount = 0;
 
         List<Reservation> reservations = new ArrayList<>();
         for (Long reservationId : reservationIds) {
@@ -118,32 +136,16 @@ public class BillService {
             Reservation reservation = reservationOptional.get();
             reservations.add(reservation);
 
-            amount += BillCostCalculaterUtil.calculate(reservation);
+            discount = reservation.getCustomer().getDiscount();
+            amount += BillCostCalculatorUtil.calculate(reservation,discount);
         }
 
         Bill bill = new Bill();
         bill.setAmount(amount);
+        bill.setDiscount(discount);
         bill.setCancelled(false);
         bill.setReservations(reservations);
-
-        Reminder reminder = new Reminder();
-        reminder.setBill(bill);
-
-        OffsetDateTime latestDate = OffsetDateTime.now();
-        for (Reservation reservation : reservations) {
-            OffsetDateTime resDate = reservation.getEndDate();
-            if (resDate.isAfter(latestDate)) {
-                latestDate = resDate;
-            }
-        }
-        reminder.setTimestamp(latestDate.plusWeeks(1));//reminder default is 1 week after reservation end (or now if that is later)
-        reminder.setEmailSent(false);
-
-        bill.addReminder(reminder);
-
         billRepository.save(bill);
-
-        reminderRepository.save(reminder);
 
         reservations.stream().forEach(reservation -> {
 
@@ -151,6 +153,7 @@ public class BillService {
             Bill oldBill = reservation.getBill();
             if (oldBill != null && oldBill != bill) {
                 oldBill.setCancelled(true);
+
                 billRepository.save(oldBill);
             }
 
@@ -159,6 +162,8 @@ public class BillService {
         });
 
         sendBillMail(bill);
+
+        logService.logAction("Eine Rechnung mit der Id '"+bill.getId()+"' wurde erstellt.");
 
         return new BillResponse(bill);
     }
@@ -174,6 +179,11 @@ public class BillService {
         variables.put("betrag", betrag);
         String htmlText = TemplateUtil.processTemplate("rechnungs_mail", variables);
         byte[] pdfAttachment = PdfGenerationUtil.createPdf("rechnungs_pdf", variables);
+
+        Blob blob = BlobProxy.generateProxy(pdfAttachment);
+        bill.setBillPdf(blob);
+        billRepository.save(bill);
+
         mailService.sendMailWithAttachment("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Ihre Rechnung!", htmlText , "rechnung.pdf", pdfAttachment, "application/pdf");
     }
 
@@ -239,6 +249,105 @@ public class BillService {
 
         return bills;
 
+    }
+
+    public BillPdfResponse getBillPdfForBill(Long billId) {
+        Bill bill = getBillObjectById(billId);
+
+        try {
+            if(bill.getBillPdf().length() <= 0) {
+                throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+            }
+        } catch (SQLException e) {
+            throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+        }
+
+        try {
+            return new BillPdfResponse("data:application/pdf;base64," + new String(Base64.getEncoder().encode(bill.getBillPdf().getBytes(1, new Long(bill.getBillPdf().length()).intValue()))));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SeseException(SeseError.BILL_PDF_NOT_FOUND);
+        }
+    }
+
+    public BillResponse updateBillDiscount(Long billId, int discount){
+        Optional<Bill> billOptional=billRepository.findById(billId);
+        Bill bill;
+
+        if(billOptional.isPresent()){
+            bill=billOptional.get();
+        }else {
+            throw new SeseException(SeseError.BILL_ID_NOT_FOUND);
+        }
+
+        if(discount<0 || discount>100){
+            throw new SeseException(SeseError.BILL_INVALID_DISCOUNT);
+        }
+
+        List<Reservation> reservations = bill.getReservations();
+
+        double amount = 0.0;
+
+        for (Reservation reservation:reservations) {
+            amount += BillCostCalculatorUtil.calculate(reservation,discount);
+        }
+        bill.setAmount(amount);
+        bill.setDiscount(discount);
+
+        billRepository.save(bill);
+
+        logService.logAction("Der Rabatt von der Rechnung mit der Id '" + billId + "' wurde geändert auf "+discount);
+
+        return new BillResponse(bill);
+
+    }
+
+    public BillResponse cancelBill(Long billId)
+    {
+        Optional<Bill> billOptional=billRepository.findById(billId);
+        Bill bill;
+
+        if(billOptional.isPresent())
+            bill=billOptional.get();
+
+        else
+            throw new SeseException(SeseError.BILL_ID_NOT_FOUND);
+
+        bill.setCancelled(true);
+        billRepository.save(bill);
+        sendCancelMail(bill);
+
+        logService.logAction("Die Rechnung mit der Id '" + billId + "' wurde storniert");
+
+        return new BillResponse(bill);
+    }
+
+    private void sendCancelMail(Bill bill)
+    {
+        Reservation reservation = bill.getReservations().stream().findFirst().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
+        double betrag = bill.getReservations().stream()
+                .map(r -> r.getRoomReservations().stream().map(rr -> rr.getRoom().getPriceAdult() * rr.getAdults() + rr.getRoom().getPriceChild() * rr.getChildren()).reduce(0D, (a, b) -> a + b))
+                .reduce(0D, (a, b) -> a + b);
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", reservation.getCustomer().getName());
+        variables.put("date", bill.getCreated());
+        variables.put("amount", betrag);
+
+        String htmlText = TemplateUtil.processTemplate("storno_mail", variables);
+        mailService.sendMail("hotelverwaltung@sese.at", reservation.getCustomer().getEmail(), "Stornierung der Rechnung", htmlText);
+
+    }
+
+    public List<BillResponse> getOverdueBills()
+    {
+        OffsetDateTime date=OffsetDateTime.now().minusWeeks(2);
+        List<Bill> billList=billRepository.findByCreatedLessThanEqual(date);
+        List<BillResponse> billResponseList=new ArrayList<>();
+
+        for(Bill bill:billList)
+            billResponseList.add(new BillResponse(bill));
+
+        return billResponseList;
     }
 
 

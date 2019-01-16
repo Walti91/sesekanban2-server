@@ -35,12 +35,16 @@ public enum SeseError {
 
     BILL_ID_NOT_FOUND(HttpStatus.NOT_FOUND, 4000, "No bill with the delivered bill-id exists"),
     BILL_INVALID_RESERVATION(HttpStatus.NOT_FOUND, 4001, "No reservation with the delivered reservation-id from the bill exists"),
+    BILL_PDF_NOT_FOUND(HttpStatus.NOT_FOUND, 4002, "No bill pdf found for the given bill"),
+    BILL_INVALID_DISCOUNT(HttpStatus.BAD_REQUEST, 4003, "The discount can't be lower than 0 or higher than 100%."),
 
     /*
     PAYMENT ERRORS 5000 - 5999
      */
 
     PAYMENT_VALUE_SMALLER_ZERO(HttpStatus.BAD_REQUEST, 5000, "The amount of money must not be smaller than zero"),
+    PAYMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, 5001, "No payment found for given payment id"),
+    PAYMENT_AMOUNT_NOT_GIVEN(HttpStatus.BAD_REQUEST, 5002, "Amount has to be given"),
 
     /*
     COMMENT ERRORS 6000-6999

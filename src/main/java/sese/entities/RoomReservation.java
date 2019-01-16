@@ -1,6 +1,7 @@
 package sese.entities;
 
 import javax.persistence.*;
+import java.time.OffsetDateTime;
 
 @Entity
 public class RoomReservation {
@@ -18,6 +19,12 @@ public class RoomReservation {
     private Integer adults;
 
     private Integer children;
+
+    private Pension pension;
+
+    private OffsetDateTime startDate;
+
+    private OffsetDateTime endDate;
 
     public Long getId() {
         return id;
@@ -59,6 +66,30 @@ public class RoomReservation {
         this.children = children;
     }
 
+    public Pension getPension() {
+        return pension;
+    }
+
+    public void setPension(Pension pension) {
+        this.pension = pension;
+    }
+
+    public OffsetDateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(OffsetDateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    public OffsetDateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(OffsetDateTime endDate) {
+        this.endDate = endDate;
+    }
+
     @Override
     public String toString() {
         return "RoomReservation{" +
@@ -66,6 +97,7 @@ public class RoomReservation {
                 ", room=" + room +
                 ", adults=" + adults +
                 ", children=" + children +
+                ", pension=" + pension +
                 '}';
     }
 }

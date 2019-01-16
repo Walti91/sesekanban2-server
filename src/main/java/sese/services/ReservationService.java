@@ -20,6 +20,7 @@ import sese.responses.ReservationResponse;
 import sese.services.utils.PdfGenerationUtil;
 import sese.services.utils.TemplateUtil;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,15 +33,20 @@ public class ReservationService {
     private CustomerService customerService;
     private ModelMapper modelMapper;
     private MailService mailService;
+    private BillService billService;
 
     @Autowired
-    public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService) {
+    private LogService logService;
+
+    @Autowired
+    public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService, BillService billService) {
         this.customerRepository = customerRepository;
         this.customerService = customerService;
         this.modelMapper = modelMapper;
         this.roomRepository = roomRepository;
         this.reservationRepository = reservationRepository;
         this.mailService = mailService;
+        this.billService = billService;
     }
 
     @Transactional
@@ -61,9 +67,12 @@ public class ReservationService {
             if(optionalRoom.isPresent()) {
                 Room room = optionalRoom.get();
                 RoomReservation roomReservation = new RoomReservation();
+                roomReservation.setPension(roomReservationRequest.getPension());
                 roomReservation.setRoom(room);
                 roomReservation.setAdults(roomReservationRequest.getAdults());
                 roomReservation.setChildren(roomReservationRequest.getChildren());
+                roomReservation.setStartDate(roomReservationRequest.getFrom());
+                roomReservation.setEndDate(roomReservationRequest.getTo());
                 roomReservations.add(roomReservation);
             } else {
                 throw new SeseException(SeseError.RESERVATION_INVALID_ROOM);
@@ -94,7 +103,11 @@ public class ReservationService {
 
         sendReservationMail(reservation);
 
-        return new ReservationResponse(reservationRepository.save(reservation));
+        Reservation saved = reservationRepository.save(reservation);
+
+        logService.logAction("Eine neue Reservierung mit der Id '" + saved.getId() + "' wurde erstellt.");
+
+        return new ReservationResponse(saved);
     }
 
     private void sendReservationMail(Reservation reservation) {
@@ -136,5 +149,72 @@ public class ReservationService {
 
     public List<ReservationResponse> getAllReservations() {
         return reservationRepository.findAll().stream().map(ReservationResponse::new).collect(Collectors.toList());
+    }
+
+    public List<ReservationResponse> getTodaysStartingReservations()
+    {
+        List<Reservation>reservationList=reservationRepository.findByStartDateBetween(getStartOfToday(),getEndOfToday());
+        List<ReservationResponse> reservationResponseList=new ArrayList<>();
+
+        for(Reservation reservation: reservationList)
+        {
+            reservationResponseList.add(new ReservationResponse(reservation));
+        }
+
+        return reservationResponseList;
+    }
+
+    private OffsetDateTime getStartOfToday()
+    {
+        OffsetDateTime now=OffsetDateTime.now();
+
+        String monat;
+        String tag;
+
+        if(now.getMonthValue()<10)
+            monat="0"+now.getMonthValue();
+        else
+            monat=""+now.getMonthValue();
+
+        if(now.getDayOfMonth()<10)
+            tag="0"+now.getDayOfMonth();
+        else
+            tag=""+now.getDayOfMonth();
+
+        OffsetDateTime startOfToday=OffsetDateTime.parse(now.getYear()+"-"+monat+"-"+tag+"T00:00:00+01:00");
+        return startOfToday;
+    }
+
+    private OffsetDateTime getEndOfToday()
+    {
+        OffsetDateTime endOfToday=getStartOfToday().plusDays(1);
+        return endOfToday;
+    }
+
+    public List<ReservationResponse> getTodaysEndingReservations()
+    {
+        List<Reservation>reservationList=reservationRepository.findByEndDateBetween(getStartOfToday(),getEndOfToday());
+        List<ReservationResponse> reservationResponseList=new ArrayList<>();
+
+        for(Reservation reservation: reservationList)
+        {
+            reservationResponseList.add(new ReservationResponse(reservation));
+        }
+
+        return reservationResponseList;
+    }
+
+    @Transactional
+    public void deleteReservation(Long reservationId) {
+        Optional<Reservation> ro = reservationRepository.findById(reservationId);
+
+        if(ro.isPresent()) {
+            Reservation reservation = ro.get();
+            billService.cancelBill(reservation.getBill().getId());
+            reservationRepository.deleteById(reservationId);
+            logService.logAction("Die Reservierung mit der Id '" + reservationId + "' wurde gelöscht");
+        } else {
+            throw new SeseException(SeseError.RESERVATION_NOT_FOUND);
+        }
     }
 }

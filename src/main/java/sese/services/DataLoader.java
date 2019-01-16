@@ -1,17 +1,21 @@
 package sese.services;
 
+import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sese.entities.*;
+import sese.exceptions.SeseError;
+import sese.exceptions.SeseException;
 import sese.repositories.*;
+import sese.services.utils.PdfGenerationUtil;
+import sese.services.utils.TemplateUtil;
 
+import java.sql.Blob;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class DataLoader implements ApplicationRunner {
@@ -23,9 +27,10 @@ public class DataLoader implements ApplicationRunner {
     private ReminderRepository reminderRepository;
     private MailService mailService;
     private PaymentRepository paymentRepository;
+    private SystemuserRepository systemuserRepository;
 
     @Autowired
-    public DataLoader(RoomRepository roomRepository, CustomerRepository customerRepository, ReservationRepository reservationRepository, BillRepository billRepository, PaymentRepository paymentRepository, ReminderRepository reminderRepository, MailService mailService) {
+    public DataLoader(RoomRepository roomRepository, CustomerRepository customerRepository, ReservationRepository reservationRepository, BillRepository billRepository, PaymentRepository paymentRepository, ReminderRepository reminderRepository, MailService mailService, SystemuserRepository systemuserRepository) {
         this.roomRepository = roomRepository;
         this.customerRepository = customerRepository;
         this.reservationRepository = reservationRepository;
@@ -33,6 +38,7 @@ public class DataLoader implements ApplicationRunner {
         this.reminderRepository = reminderRepository;
         this.mailService = mailService;
         this.paymentRepository = paymentRepository;
+        this.systemuserRepository = systemuserRepository;
     }
 
     @Override
@@ -42,6 +48,7 @@ public class DataLoader implements ApplicationRunner {
         loadReservations();
         //bills need to come after reservations cause it depends on it
         loadBills();
+        loadSystemuser();
     }
 
     private void loadRooms() {
@@ -109,6 +116,9 @@ public class DataLoader implements ApplicationRunner {
 
         List<RoomReservation> roomReservations = new ArrayList<>();
         RoomReservation roomReservation = new RoomReservation();
+        roomReservation.setPension(Pension.FULL);
+        roomReservation.setStartDate(reservation.getStartDate());
+        roomReservation.setEndDate(reservation.getEndDate());
         roomReservation.setAdults(2);
         roomReservation.setChildren(2);
         roomReservation.setRoom(room);
@@ -133,26 +143,36 @@ public class DataLoader implements ApplicationRunner {
         Payment payment = new Payment();
         payment.setBill(bill);
         payment.setEmailSent(true);
-
         payment.setTimestamp(OffsetDateTime.now());
         payment.setValue(10.0);
-        bill.setAmount(10.0);
 
         bill.addPayment(payment);
-
+        //bill.setCreated(OffsetDateTime.now().minusWeeks(1L));
         List<Reservation> reservations = reservationRepository.findAll();
         bill.setReservations(reservations);
+        bill.setCreated(OffsetDateTime.now().minusWeeks(3));
+        Reservation firstReservation = bill.getReservations().stream().findFirst().orElseThrow(() -> new SeseException(SeseError.RESERVATION_NOT_FOUND));
 
-        Reminder reminder = new Reminder();
-        reminder.setBill(bill);
-        reminder.setEmailSent(false);
-        reminder.setTimestamp(OffsetDateTime.now().plusWeeks(1));//default 1 week
+        double betrag = bill.getReservations().stream()
+                .map(r -> r.getRoomReservations().stream().map(rr -> rr.getRoom().getPriceAdult() * rr.getAdults() + rr.getRoom().getPriceChild() * rr.getChildren()).reduce(0D, (a, b) -> a + b))
+                .reduce(0D, (a, b) -> a + b);
 
-        bill.addReminder(reminder);
+        bill.setAmount(betrag);
+        bill.setDiscount(reservations.get(0).getCustomer().getDiscount());
 
-        billRepository.save(bill);
+        Bill saved = billRepository.save(bill);
 
-        reminderRepository.save(reminder);
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("name", firstReservation.getCustomer().getName());
+        variables.put("rechnungsnummer", saved.getId());
+        variables.put("betrag", betrag);
+        String htmlText = TemplateUtil.processTemplate("rechnungs_mail", variables);
+        byte[] pdfAttachment = PdfGenerationUtil.createPdf("rechnungs_pdf", variables);
+
+        Blob blob = BlobProxy.generateProxy(pdfAttachment);
+        saved.setBillPdf(blob);
+
+        billRepository.save(saved);
 
         reservations.stream().forEach(reservation -> {
             reservation.setBill(bill);
@@ -162,5 +182,11 @@ public class DataLoader implements ApplicationRunner {
         paymentRepository.save(payment);
     }
 
+    private void loadSystemuser() {
+        Systemuser systemuser = new Systemuser();
+        systemuser.setName("Standard-Hotelmitarbeiter");
+
+        systemuserRepository.save(systemuser);
+    }
 
 }

@@ -2,6 +2,7 @@ package sese.responses;
 
 import sese.entities.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,14 +14,18 @@ public class BillResponse {
     private List<PaymentResponse> payments;
     private List<ReminderResponse> reminders;
     private Double amount;
+    private int discount;
+    private OffsetDateTime created;
 
-    public BillResponse(Bill bill){
+    public BillResponse(Bill bill) {
         id = bill.getId();
         isCancelled = bill.isCancelled();
         reservations = bill.getReservations().stream().map(ReservationResponse::new).collect(Collectors.toList());
         payments = bill.getPayments().stream().map(PaymentResponse::new).collect(Collectors.toList());
         reminders = bill.getReminders().stream().map(ReminderResponse::new).collect(Collectors.toList());
         amount = bill.getAmount();
+        discount = bill.getDiscount();
+        created = bill.getCreated();
     }
 
     public boolean isCancelled() {
@@ -69,5 +74,35 @@ public class BillResponse {
 
     public void setReminders(List<ReminderResponse> reminders) {
         this.reminders = reminders;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    @Override
+    public String toString() {
+        return "BillResponse{" +
+                "id=" + id +
+                ", isCancelled=" + isCancelled +
+                ", reservations=" + reservations +
+                ", payments=" + payments +
+                ", reminders=" + reminders +
+                ", amount=" + amount +
+                ", discount=" + discount +
+                ", created=" + created +
+                '}';
+    }
+
+    public int getDiscount() {
+        return discount;
+    }
+
+    public void setDiscount(int discount) {
+        this.discount = discount;
     }
 }
