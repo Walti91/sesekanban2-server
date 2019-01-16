@@ -117,6 +117,8 @@ public class DataLoader implements ApplicationRunner {
         List<RoomReservation> roomReservations = new ArrayList<>();
         RoomReservation roomReservation = new RoomReservation();
         roomReservation.setPension(Pension.FULL);
+        roomReservation.setStartDate(reservation.getStartDate());
+        roomReservation.setEndDate(reservation.getEndDate());
         roomReservation.setAdults(2);
         roomReservation.setChildren(2);
         roomReservation.setRoom(room);

@@ -71,6 +71,8 @@ public class ReservationService {
                 roomReservation.setRoom(room);
                 roomReservation.setAdults(roomReservationRequest.getAdults());
                 roomReservation.setChildren(roomReservationRequest.getChildren());
+                roomReservation.setStartDate(roomReservationRequest.getFrom());
+                roomReservation.setEndDate(roomReservationRequest.getTo());
                 roomReservations.add(roomReservation);
             } else {
                 throw new SeseException(SeseError.RESERVATION_INVALID_ROOM);

@@ -3,6 +3,8 @@ package sese.responses;
 import sese.entities.Pension;
 import sese.entities.RoomReservation;
 
+import java.time.OffsetDateTime;
+
 public class RoomReservationResponse {
 
     private RoomResponse room;
@@ -13,11 +15,17 @@ public class RoomReservationResponse {
 
     private Pension pension;
 
+    private OffsetDateTime from;
+
+    private OffsetDateTime to;
+
     public RoomReservationResponse(RoomReservation roomReservation) {
         room = new RoomResponse(roomReservation.getRoom());
         adults = roomReservation.getAdults();
         children = roomReservation.getChildren();
         pension = roomReservation.getPension();
+        from = roomReservation.getStartDate();
+        to = roomReservation.getEndDate();
     }
 
     public RoomResponse getRoom() {
@@ -50,5 +58,21 @@ public class RoomReservationResponse {
 
     public void setPension(Pension pension) {
         this.pension = pension;
+    }
+
+    public OffsetDateTime getFrom() {
+        return from;
+    }
+
+    public void setFrom(OffsetDateTime from) {
+        this.from = from;
+    }
+
+    public OffsetDateTime getTo() {
+        return to;
+    }
+
+    public void setTo(OffsetDateTime to) {
+        this.to = to;
     }
 }
