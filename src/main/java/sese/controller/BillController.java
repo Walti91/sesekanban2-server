@@ -27,8 +27,6 @@ public class BillController {
     @PostMapping("")
     @CrossOrigin(origins = "http://localhost:4200")
     public void addBill(@RequestBody BillRequest billRequest) {
-        System.out.println(billRequest);
-
         billService.addNewBill(billRequest);
     }
 

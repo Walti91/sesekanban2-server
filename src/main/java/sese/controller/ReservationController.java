@@ -73,4 +73,10 @@ public class ReservationController {
     {
         return reservationService.getTodaysEndingReservations();
     }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @DeleteMapping("/{reservationId}/delete")
+    public void deleteReservation(@PathVariable Long reservationId) {
+        reservationService.deleteReservation(reservationId);
+    }
 }

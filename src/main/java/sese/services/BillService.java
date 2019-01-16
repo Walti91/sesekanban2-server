@@ -150,6 +150,7 @@ public class BillService {
             Bill oldBill = reservation.getBill();
             if (oldBill != null && oldBill != bill) {
                 oldBill.setCancelled(true);
+
                 billRepository.save(oldBill);
             }
 
@@ -280,6 +281,8 @@ public class BillService {
         bill.setCancelled(true);
         billRepository.save(bill);
         sendCancelMail(bill);
+
+        logService.logAction("Die Rechnung mit der Id '" + billId + "' wurde storniert");
 
         return new BillResponse(bill);
     }

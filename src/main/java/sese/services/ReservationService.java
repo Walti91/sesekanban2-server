@@ -33,18 +33,20 @@ public class ReservationService {
     private CustomerService customerService;
     private ModelMapper modelMapper;
     private MailService mailService;
+    private BillService billService;
 
     @Autowired
     private LogService logService;
 
     @Autowired
-    public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService) {
+    public ReservationService(CustomerRepository customerRepository, CustomerService customerService, ModelMapper modelMapper, RoomRepository roomRepository, ReservationRepository reservationRepository, MailService mailService, BillService billService) {
         this.customerRepository = customerRepository;
         this.customerService = customerService;
         this.modelMapper = modelMapper;
         this.roomRepository = roomRepository;
         this.reservationRepository = reservationRepository;
         this.mailService = mailService;
+        this.billService = billService;
     }
 
     @Transactional
@@ -198,5 +200,19 @@ public class ReservationService {
         }
 
         return reservationResponseList;
+    }
+
+    @Transactional
+    public void deleteReservation(Long reservationId) {
+        Optional<Reservation> ro = reservationRepository.findById(reservationId);
+
+        if(ro.isPresent()) {
+            Reservation reservation = ro.get();
+            billService.cancleBill(reservation.getBill().getId());
+            reservationRepository.deleteById(reservationId);
+            logService.logAction("Die Reservierung mit der Id '" + reservationId + "' wurde gelöscht");
+        } else {
+            throw new SeseException(SeseError.RESERVATION_NOT_FOUND);
+        }
     }
 }
